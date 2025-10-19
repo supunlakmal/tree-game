@@ -1,39 +1,34 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
-import { gsap, RoughEase } from 'gsap/all';
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
+import { gsap } from "gsap";
+import { RoughEase } from "gsap/EasePack";
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationIdRef = useRef<number>();
+  const animationIdRef = useRef<number | undefined>(undefined);
   const hitCounterRef = useRef<number>(0);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    let scene: THREE.Scene;
-    let camera: THREE.PerspectiveCamera;
-    let renderer: THREE.WebGLRenderer;
-    let renderCalls: Array<() => void> = [];
-    let sceneBoxes: THREE.Mesh[] = [];
-    let keys: { [key: number]: boolean } = {};
+    const container = containerRef.current;
+    const renderCalls: Array<() => void> = [];
+    const sceneBoxes: THREE.Mesh[] = [];
+
+    const keys: { [key: number]: boolean } = {};
 
     // Initialize scene
-    scene = new THREE.Scene();
+    const scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0x242426, 20, 600);
 
     // Initialize camera
-    camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      10,
-      600
-    );
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 10, 600);
     camera.position.z = 90;
 
     // Initialize renderer
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x242426);
@@ -41,7 +36,7 @@ export default function Home() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    containerRef.current.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
 
     // Window resize handler
     const handleResize = () => {
@@ -49,7 +44,7 @@ export default function Home() {
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // Add hemisphere light
     const hemiLight = new THREE.HemisphereLight(0xebf7fd, 0xebf7fd, 0.2);
@@ -58,8 +53,8 @@ export default function Home() {
 
     // Noise map texture generator
     function noiseMap(size = 256, intensity = 60, repeat = 0) {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d")!;
       const width = (canvas.width = size);
       const height = (canvas.height = size);
 
@@ -69,10 +64,7 @@ export default function Home() {
       let i = 0;
 
       while (i < n) {
-        pixels[i++] =
-          pixels[i++] =
-          pixels[i++] =
-            Math.sin(i * i * i + (i / n) * Math.PI) * intensity;
+        pixels[i++] = pixels[i++] = pixels[i++] = Math.sin(i * i * i + (i / n) * Math.PI) * intensity;
         pixels[i++] = 255;
       }
       ctx.putImageData(imageData, 0, 0);
@@ -144,11 +136,11 @@ export default function Home() {
         light.castShadow = true;
         light.shadow.mapSize.width = 512;
         light.shadow.mapSize.height = 512;
-        light.shadow.camera.near = 0.1;
-        light.shadow.camera.far = 50;
+        (light.shadow.camera as THREE.PerspectiveCamera).near = 0.1;
+        (light.shadow.camera as THREE.PerspectiveCamera).far = 50;
         light.shadow.bias = 0.1;
         light.shadow.radius = 5;
-        (light as any).power = 3;
+        (light as THREE.PointLight).power = 3;
         this.add(light);
 
         // Wheels
@@ -175,9 +167,9 @@ export default function Home() {
             light.castShadow = true;
             light.shadow.mapSize.width = 512;
             light.shadow.mapSize.height = 512;
-            light.shadow.camera.near = 1;
-            light.shadow.camera.far = 400;
-            light.shadow.camera.fov = 40;
+            (light.shadow.camera as THREE.PerspectiveCamera).near = 1;
+            (light.shadow.camera as THREE.PerspectiveCamera).far = 400;
+            (light.shadow.camera as THREE.PerspectiveCamera).fov = 40;
             light.target.position.y = i < 1 ? -0.5 : 0.5;
             light.target.position.x = 35;
             this.add(light.target);
@@ -237,12 +229,8 @@ export default function Home() {
 
         // Update headlights
         if (this.lights) {
-          this.lights.forEach((light, i) => {
-            light.rotation.z = this.angle;
-            light.target.position.clone(this.position);
-            light.target.position.x += 10;
-            light.target.position.y += i < 1 ? -0.5 : 0.5;
-            light.target.updateMatrixWorld();
+          this.lights.forEach((light) => {
+            light.target.updateMatrixWorld(false);
           });
 
           // Toggle headlights with L key
@@ -259,14 +247,8 @@ export default function Home() {
         }
 
         // Keep car within bounds
-        this.position.x =
-          this.position.x > 990 || this.position.x < -990
-            ? prev.x
-            : this.position.x;
-        this.position.y =
-          this.position.y > 990 || this.position.y < -990
-            ? prev.y
-            : this.position.y;
+        this.position.x = this.position.x > 990 || this.position.x < -990 ? prev.x : this.position.x;
+        this.position.y = this.position.y > 990 || this.position.y < -990 ? prev.y : this.position.y;
 
         // Update camera
         camera.position.x += (this.position.x - camera.position.x) * 0.1;
@@ -287,8 +269,8 @@ export default function Home() {
       e.preventDefault();
     };
 
-    document.body.addEventListener('keydown', handleKeyDown);
-    document.body.addEventListener('keyup', handleKeyUp);
+    document.body.addEventListener("keydown", handleKeyDown);
+    document.body.addEventListener("keyup", handleKeyUp);
 
     // Create and add car
     const car = new Car();
@@ -299,11 +281,13 @@ export default function Home() {
     const noise = noiseMap(256, 20, 30);
     function snowyGround() {
       const geometry = new THREE.PlaneGeometry(2000, 2000, 40, 45);
+
       for (let i = 0; i < geometry.vertices.length; i++) {
         geometry.vertices[i].x += (Math.cos(i * i) + 1 / 2) * 2;
         geometry.vertices[i].y += (Math.cos(i) + 1 / 2) * 2;
         geometry.vertices[i].z = (Math.sin(i * i * i) + 1 / 2) * -4;
       }
+
       geometry.verticesNeedUpdate = true;
       geometry.normalsNeedUpdate = true;
       geometry.computeFaceNormals();
@@ -313,7 +297,6 @@ export default function Home() {
         shininess: 80,
         bumpMap: noise,
         bumpScale: 0.15,
-        shading: THREE.SmoothShading,
       });
 
       const plane = new THREE.Mesh(geometry, material);
@@ -360,7 +343,8 @@ export default function Home() {
 
       return container;
     }
-    scene.add(randomBoxes());
+    const boxContainer = randomBoxes();
+    scene.add(boxContainer);
 
     // Update box visibility based on headlight illumination
     function updateBoxVisibility() {
@@ -416,10 +400,10 @@ export default function Home() {
           hitCounterRef.current += 1;
 
           // Log to console
-          console.log('Hit! Total hits:', hitCounterRef.current);
+          console.log("Hit! Total hits:", hitCounterRef.current);
 
-          // Remove box from scene
-          scene.remove(box);
+          // Remove box from container
+          boxContainer.remove(box);
 
           // Remove box from array
           sceneBoxes.splice(i, 1);
@@ -428,10 +412,8 @@ export default function Home() {
     }
 
     // Animation loop
-    let count = 3;
     function render() {
       animationIdRef.current = requestAnimationFrame(render);
-      count += 0.03;
 
       renderCalls.forEach((callback) => {
         callback();
@@ -451,11 +433,11 @@ export default function Home() {
       if (animationIdRef.current) {
         cancelAnimationFrame(animationIdRef.current);
       }
-      window.removeEventListener('resize', handleResize);
-      document.body.removeEventListener('keydown', handleKeyDown);
-      document.body.removeEventListener('keyup', handleKeyUp);
-      if (containerRef.current && renderer.domElement) {
-        containerRef.current.removeChild(renderer.domElement);
+      window.removeEventListener("resize", handleResize);
+      document.body.removeEventListener("keydown", handleKeyDown);
+      document.body.removeEventListener("keyup", handleKeyUp);
+      if (container && renderer.domElement) {
+        container.removeChild(renderer.domElement);
       }
       renderer.dispose();
     };
@@ -464,9 +446,7 @@ export default function Home() {
   return (
     <>
       <div ref={containerRef} className="game-container" />
-      <div className="controls">
-        Drive with arrow keys or WASD. Toggle headlights with L
-      </div>
+      <div className="controls">Drive with arrow keys or WASD. Toggle headlights with L</div>
     </>
   );
 }
