@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 import { gsap } from "gsap";
 import { RoughEase } from "gsap/EasePack";
 
@@ -15,13 +16,22 @@ export default function Home() {
 
     const container = containerRef.current;
     const renderCalls: Array<() => void> = [];
-    const sceneBoxes: THREE.Mesh[] = [];
+    const sceneBoxes: THREE.Object3D[] = [];
 
     const keys: { [key: number]: boolean } = {};
 
-    // Initialize scene
+    // Ground and world configuration
+    const GROUND_SIZE = 2000; // Size of the ground plane (width and height)
+    const GROUND_SEGMENTS_X = 40; // Ground geometry detail (X axis)
+    const GROUND_SEGMENTS_Y = 45; // Ground geometry detail (Y axis)
+    const TREE_DISTRIBUTION_AREA = 1800; // Area where trees are randomly placed
+    const CAR_MOVEMENT_BOUNDS = 990; // Maximum distance car can travel from center
+    const TREE_COUNT = 3000; // Number of palm trees to create
+    const FALLBACK_BOX_COUNT = 100; // Number of fallback boxes if FBX fails
+
+    // Initialize scene with pure black atmosphere
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x242426, 20, 600);
+    scene.fog = new THREE.Fog(0x000000, 20, 600);
 
     // Initialize camera
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 10, 600);
@@ -31,7 +41,7 @@ export default function Home() {
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x242426);
+    renderer.setClearColor(0x000000);
     renderer.toneMapping = THREE.LinearToneMapping;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -46,12 +56,16 @@ export default function Home() {
     };
     window.addEventListener("resize", handleResize);
 
-    // Add hemisphere light
-    const hemiLight = new THREE.HemisphereLight(0xebf7fd, 0xebf7fd, 0.2);
+    // Minimal hemisphere light for dark atmosphere (only headlights should illuminate)
+    const hemiLight = new THREE.HemisphereLight(0xebf7fd, 0xebf7fd, 0.01);
     hemiLight.position.set(0, 20, 20);
     scene.add(hemiLight);
 
-    // Noise map texture generator
+    // Minimal ambient light to create dramatic darkness
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.01);
+    scene.add(ambientLight);
+
+    // Noise map texture generator (fixed: normalize values to 0-255 range)
     function noiseMap(size = 256, intensity = 60, repeat = 0) {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d")!;
@@ -64,8 +78,12 @@ export default function Home() {
       let i = 0;
 
       while (i < n) {
-        pixels[i++] = pixels[i++] = pixels[i++] = Math.sin(i * i * i + (i / n) * Math.PI) * intensity;
-        pixels[i++] = 255;
+        // Normalize sin output (-1 to 1) to pixel range (0 to 255)
+        const value = ((Math.sin(i * i * i + (i / n) * Math.PI) + 1) / 2) * intensity;
+        pixels[i++] = value; // R
+        pixels[i++] = value; // G
+        pixels[i++] = value; // B
+        pixels[i++] = 255; // A
       }
       ctx.putImageData(imageData, 0, 0);
 
@@ -129,20 +147,6 @@ export default function Home() {
         this.castShadow = true;
         this.receiveShadow = true;
 
-        // Point light
-        const light = new THREE.PointLight(0xffffff, 1, 0);
-        light.position.z = 25;
-        light.position.x = 5;
-        light.castShadow = true;
-        light.shadow.mapSize.width = 512;
-        light.shadow.mapSize.height = 512;
-        (light.shadow.camera as THREE.PerspectiveCamera).near = 0.1;
-        (light.shadow.camera as THREE.PerspectiveCamera).far = 50;
-        light.shadow.bias = 0.1;
-        light.shadow.radius = 5;
-        (light as THREE.PointLight).power = 3;
-        this.add(light);
-
         // Wheels
         this.wheels = Array(4)
           .fill(null)
@@ -155,20 +159,23 @@ export default function Home() {
             return wheel;
           });
 
-        // Headlights
+        // Headlights (very high intensity for dark atmosphere - only light source)
         this.lights = Array(2)
           .fill(null)
           .map((_, i) => {
-            const light = new THREE.SpotLight(0xffffff);
+            const light = new THREE.SpotLight(0xffffff, 800);
             light.position.x = 11;
             light.position.y = i < 1 ? -3 : 3;
             light.position.z = -3;
             light.angle = Math.PI / 3.5;
+            light.penumbra = 0.5;
+            light.decay = 1.5;
+            light.distance = 600;
             light.castShadow = true;
             light.shadow.mapSize.width = 512;
             light.shadow.mapSize.height = 512;
             (light.shadow.camera as THREE.PerspectiveCamera).near = 1;
-            (light.shadow.camera as THREE.PerspectiveCamera).far = 400;
+            (light.shadow.camera as THREE.PerspectiveCamera).far = 600;
             (light.shadow.camera as THREE.PerspectiveCamera).fov = 40;
             light.target.position.y = i < 1 ? -0.5 : 0.5;
             light.target.position.x = 35;
@@ -238,7 +245,7 @@ export default function Home() {
             keys[76] = false;
             this.lightsOn = !this.lightsOn;
             gsap.to(this.lights, {
-              intensity: this.lightsOn ? 1 : 0,
+              intensity: this.lightsOn ? 800 : 0,
               duration: 0.3,
               stagger: 0.02,
               ease: RoughEase.ease,
@@ -247,14 +254,15 @@ export default function Home() {
         }
 
         // Keep car within bounds
-        this.position.x = this.position.x > 990 || this.position.x < -990 ? prev.x : this.position.x;
-        this.position.y = this.position.y > 990 || this.position.y < -990 ? prev.y : this.position.y;
+        this.position.x = this.position.x > CAR_MOVEMENT_BOUNDS || this.position.x < -CAR_MOVEMENT_BOUNDS ? prev.x : this.position.x;
+        this.position.y = this.position.y > CAR_MOVEMENT_BOUNDS || this.position.y < -CAR_MOVEMENT_BOUNDS ? prev.y : this.position.y;
 
         // Update camera
         camera.position.x += (this.position.x - camera.position.x) * 0.1;
         camera.position.y = this.position.y - 40 - this.speed * 10;
 
-        camera.lookAt(new THREE.Vector3(this.position.x, this.position.y, 0));
+        // Look at point between car (z=0) and ground (z=-5) for better visibility
+        camera.lookAt(new THREE.Vector3(this.position.x, this.position.y, -2.5));
       }
     }
 
@@ -280,17 +288,21 @@ export default function Home() {
     // Create snowy ground
     const noise = noiseMap(256, 20, 30);
     function snowyGround() {
-      const geometry = new THREE.PlaneGeometry(2000, 2000, 40, 45);
+      const geometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, GROUND_SEGMENTS_X, GROUND_SEGMENTS_Y);
 
-      for (let i = 0; i < geometry.vertices.length; i++) {
-        geometry.vertices[i].x += (Math.cos(i * i) + 1 / 2) * 2;
-        geometry.vertices[i].y += (Math.cos(i) + 1 / 2) * 2;
-        geometry.vertices[i].z = (Math.sin(i * i * i) + 1 / 2) * -4;
+      // Modern Three.js uses BufferGeometry attributes
+      const positionAttribute = geometry.getAttribute("position");
+      const positions = positionAttribute.array as Float32Array;
+
+      for (let i = 0; i < positions.length; i += 3) {
+        const idx = i / 3;
+        positions[i] += (Math.cos(idx * idx) + 1 / 2) * 2; // x
+        positions[i + 1] += (Math.cos(idx) + 1 / 2) * 2; // y
+        positions[i + 2] += (Math.sin(idx * idx * idx) + 1 / 2) * -4; // z (fixed: += instead of =)
       }
 
-      geometry.verticesNeedUpdate = true;
-      geometry.normalsNeedUpdate = true;
-      geometry.computeFaceNormals();
+      positionAttribute.needsUpdate = true;
+      geometry.computeVertexNormals();
 
       const material = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -307,50 +319,89 @@ export default function Home() {
     }
     scene.add(snowyGround());
 
-    // Create random boxes
-    function randomBoxes() {
-      const container = new THREE.Object3D();
-      const boxCount = 100;
+    // Load and create random palm trees
+    const treeContainer = new THREE.Object3D();
+    scene.add(treeContainer);
 
-      for (let i = 0; i < boxCount; i++) {
-        const size = 2 + Math.random() * 6;
-        const geometry = new THREE.BoxGeometry(size, size, size);
+    const loader = new FBXLoader();
+    loader.load(
+      "/modals/Environment_PalmTree_3.fbx",
+      (palmTreeModel) => {
+        console.log("Palm tree model loaded successfully!");
 
-        const material = new THREE.MeshPhongMaterial({
-          color: 0x0a0a0a,
-          shininess: 30,
-          emissive: 0x000000,
-          emissiveIntensity: 0,
+        // Enable shadows on all meshes in the loaded model
+        palmTreeModel.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            (child as THREE.Mesh).castShadow = true;
+            (child as THREE.Mesh).receiveShadow = true;
+          }
         });
 
-        const box = new THREE.Mesh(geometry, material);
+        // Create palm tree instances
+        const treeCount = TREE_COUNT;
+        for (let i = 0; i < treeCount; i++) {
+          // Clone the loaded palm tree model
+          const tree = palmTreeModel.clone();
 
-        box.position.x = (Math.random() - 0.5) * 1800;
-        box.position.y = (Math.random() - 0.5) * 1800;
-        box.position.z = -5 + size / 2;
+          // Random scale for variety (adjusted to 10x larger)
+          const scale = 10.0; // Scale between 5.0 and 10.0
+          tree.scale.set(scale, scale, scale);
 
-        box.rotation.z = Math.random() * Math.PI * 2;
-        box.rotation.x = (Math.random() - 0.5) * 0.3;
-        box.rotation.y = (Math.random() - 0.5) * 0.3;
+          // Fix orientation - rotate to make tree stand upright
+          // FBX models often need 90-degree rotation to align with Three.js coordinate system
+          tree.rotation.x = Math.PI / 2; // Rotate 90 degrees to make tree vertical
 
-        box.castShadow = true;
-        box.receiveShadow = true;
-        box.visible = false;
+          // Random position
+          tree.position.x = (Math.random() - 0.5) * TREE_DISTRIBUTION_AREA;
+          tree.position.y = (Math.random() - 0.5) * TREE_DISTRIBUTION_AREA;
+          // Embed tree into ground so trunk base sits at ground level
+          tree.position.z = -11;
 
-        container.add(box);
-        sceneBoxes.push(box);
+          // Initially invisible (will be revealed by headlights)
+          tree.visible = false;
+
+          treeContainer.add(tree);
+          sceneBoxes.push(tree); // Using existing array for visibility/collision
+        }
+
+        console.log(`Created ${treeCount} palm tree instances`);
+      },
+      (progress) => {
+        console.log(`Loading palm tree: ${((progress.loaded / progress.total) * 100).toFixed(2)}%`);
+      },
+      (error) => {
+        console.error("Error loading palm tree model:", error);
+        console.log("Falling back to boxes...");
+
+        // Fallback to boxes if FBX loading fails
+        for (let i = 0; i < FALLBACK_BOX_COUNT; i++) {
+          const size = 2 + Math.random() * 6;
+          const geometry = new THREE.BoxGeometry(size, size, size);
+          const material = new THREE.MeshPhongMaterial({
+            color: 0x0a0a0a,
+            shininess: 30,
+            emissive: 0x000000,
+            emissiveIntensity: 0,
+          });
+          const box = new THREE.Mesh(geometry, material);
+          box.position.x = (Math.random() - 0.5) * TREE_DISTRIBUTION_AREA;
+          box.position.y = (Math.random() - 0.5) * TREE_DISTRIBUTION_AREA;
+          box.position.z = -5 + size / 2;
+          box.rotation.z = Math.random() * Math.PI * 2;
+          box.castShadow = true;
+          box.receiveShadow = true;
+          box.visible = false;
+          treeContainer.add(box);
+          sceneBoxes.push(box);
+        }
       }
-
-      return container;
-    }
-    const boxContainer = randomBoxes();
-    scene.add(boxContainer);
+    );
 
     // Update box visibility based on headlight illumination
     function updateBoxVisibility() {
       if (!car || !car.lights || car.lights.length === 0) return;
 
-      const lightRange = 150;
+      const lightRange = 300;
       const lightAngle = Math.PI / 3.5;
 
       sceneBoxes.forEach((box) => {
@@ -402,10 +453,10 @@ export default function Home() {
           // Log to console
           console.log("Hit! Total hits:", hitCounterRef.current);
 
-          // Remove box from container
-          boxContainer.remove(box);
+          // Remove tree/object from container
+          treeContainer.remove(box);
 
-          // Remove box from array
+          // Remove from array
           sceneBoxes.splice(i, 1);
         }
       }
