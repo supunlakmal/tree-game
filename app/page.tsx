@@ -343,6 +343,30 @@ export default function Home() {
           // Clone the loaded palm tree model
           const tree = palmTreeModel.clone();
 
+          // Clone materials for this instance to avoid shared references
+          tree.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mesh = child as THREE.Mesh;
+              if (mesh.material) {
+                if (Array.isArray(mesh.material)) {
+                  // Clone each material in the array
+                  mesh.material = mesh.material.map((mat) => {
+                    const clonedMat = mat.clone();
+                    clonedMat.transparent = true;
+                    clonedMat.opacity = 0; // Start invisible
+                    return clonedMat;
+                  });
+                } else {
+                  // Clone single material
+                  const clonedMat = mesh.material.clone();
+                  clonedMat.transparent = true;
+                  clonedMat.opacity = 0; // Start invisible
+                  mesh.material = clonedMat;
+                }
+              }
+            }
+          });
+
           // Random scale for variety (adjusted to 10x larger)
           const scale = 10.0; // Scale between 5.0 and 10.0
           tree.scale.set(scale, scale, scale);
@@ -382,6 +406,8 @@ export default function Home() {
             shininess: 30,
             emissive: 0x000000,
             emissiveIntensity: 0,
+            transparent: true, // Enable transparency for gradual fade-in
+            opacity: 0, // Start invisible
           });
           const box = new THREE.Mesh(geometry, material);
           box.position.x = (Math.random() - 0.5) * TREE_DISTRIBUTION_AREA;
@@ -397,7 +423,7 @@ export default function Home() {
       }
     );
 
-    // Update box visibility based on headlight illumination
+    // Update box visibility and opacity based on headlight illumination
     function updateBoxVisibility() {
       if (!car || !car.lights || car.lights.length === 0) return;
 
@@ -409,23 +435,50 @@ export default function Home() {
         const dy = box.position.y - car.position.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance > lightRange) {
-          box.visible = false;
-          return;
+        // Calculate light intensity factors
+        let intensity = 0;
+
+        if (car.lightsOn && distance <= lightRange) {
+          // Distance factor: 1.0 at car position, fades to 0.0 at lightRange
+          const distanceFactor = 1.5 - distance / lightRange;
+
+          // Angle factor: calculate how aligned the box is with headlight direction
+          const carAngle = car.angle;
+          const angleToBox = Math.atan2(-dy, dx);
+          let angleDiff = angleToBox - carAngle;
+
+          // Normalize angle difference to [-PI, PI]
+          while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+          while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+
+          // Angle factor: 1.0 at center of cone, fades to 0.0 at edges
+          const angleFactor = Math.max(0, 1.0 - Math.abs(angleDiff) / lightAngle);
+
+          // Combine factors with smooth falloff
+          intensity = distanceFactor * angleFactor;
+
+          // Apply smooth curve for more natural falloff
+          intensity = Math.pow(intensity, 0.7); // Adjust power for softer/harder falloff
         }
 
-        const carAngle = car.angle;
-        const angleToBox = Math.atan2(-dy, dx);
-        let angleDiff = angleToBox - carAngle;
+        // Apply opacity to all materials in the object
+        box.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            if (mesh.material) {
+              if (Array.isArray(mesh.material)) {
+                mesh.material.forEach((mat) => {
+                  mat.opacity = intensity;
+                });
+              } else {
+                mesh.material.opacity = intensity;
+              }
+            }
+          }
+        });
 
-        while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-        while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-
-        if (Math.abs(angleDiff) < lightAngle && car.lightsOn) {
-          box.visible = true;
-        } else {
-          box.visible = false;
-        }
+        // Optimization: only render when opacity > 0
+        box.visible = intensity > 0.01;
       });
     }
 
