@@ -84,7 +84,7 @@ export default function Game() {
     const GROUND_SEGMENTS_Y = 45; // Ground geometry detail (Y axis)
     const TREE_DISTRIBUTION_AREA = 1800; // Area where trees are randomly placed
     const CAR_MOVEMENT_BOUNDS = 990; // Maximum distance car can travel from center
-    const TREE_COUNT = 450; // Number of palm trees to create
+    const TREE_COUNT = 1000; // Number of palm trees to create
     const FALLBACK_BOX_COUNT = 100; // Number of fallback boxes if FBX fails
 
     // Initialize scene with pure black atmosphere
