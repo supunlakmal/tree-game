@@ -18,6 +18,7 @@ export default function Game() {
   const [finalScore, setFinalScore] = useState(0);
   const [scoreSaved, setScoreSaved] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(120); // 2 minutes in seconds
+  const [hitCount, setHitCount] = useState(0);
 
   // Check authentication on mount
   useEffect(() => {
@@ -547,6 +548,7 @@ export default function Game() {
         if (distance < collisionThreshold) {
           // Increment hit counter
           hitCounterRef.current += 1;
+          setHitCount(hitCounterRef.current);
 
           // Log to console
           console.log("Hit! Total hits:", hitCounterRef.current);
@@ -620,6 +622,15 @@ export default function Game() {
         <div className={`game-timer ${getTimerClass()}`}>
           <div className="timer-icon">⏱</div>
           <div className="timer-value">{formatTime(timeRemaining)}</div>
+        </div>
+      )}
+
+      {/* Hit Counter */}
+      {!gameOver && (
+        <div className="hit-counter">
+          <div className="hit-counter-icon">🎯</div>
+          <div className="hit-counter-label">Hits</div>
+          <div className="hit-counter-value">{hitCount}</div>
         </div>
       )}
 

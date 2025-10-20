@@ -385,6 +385,61 @@ canvas {
   text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
 }
 
+/* Hit Counter */
+.hit-counter {
+  position: absolute;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.25rem 2rem;
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid rgba(255, 165, 0, 0.4);
+  border-radius: 16px;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 30px rgba(255, 165, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.hit-counter-icon {
+  font-size: 2rem;
+  animation: targetPulse 2s ease-in-out infinite;
+}
+
+@keyframes targetPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.1);
+    filter: brightness(1.3);
+  }
+}
+
+.hit-counter-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255, 165, 0, 0.8);
+}
+
+.hit-counter-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-family: monospace;
+  color: #ffa500;
+  text-shadow: 0 0 20px rgba(255, 165, 0, 0.6);
+  line-height: 1;
+  min-width: 60px;
+  text-align: center;
+}
+
 /* Game Timer */
 .game-timer {
   position: absolute;
@@ -701,6 +756,26 @@ canvas {
   .leaderboard-score {
     font-size: 1rem;
     min-width: 40px;
+  }
+
+  .hit-counter {
+    top: 1rem;
+    padding: 1rem 1.5rem;
+    gap: 0.125rem;
+  }
+
+  .hit-counter-icon {
+    font-size: 1.5rem;
+  }
+
+  .hit-counter-label {
+    font-size: 0.65rem;
+    letter-spacing: 1.5px;
+  }
+
+  .hit-counter-value {
+    font-size: 2rem;
+    min-width: 50px;
   }
 
   .game-timer {

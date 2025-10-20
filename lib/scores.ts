@@ -11,6 +11,16 @@ export interface ScoreWithUsername extends Score {
   username: string
 }
 
+interface ScoreWithUserRelation {
+  id: string
+  user_id: string
+  score: number
+  created_at: string
+  users: {
+    username: string
+  }[]
+}
+
 /**
  * Saves a game score for a user
  */
@@ -143,12 +153,12 @@ export async function getTopScores(limit = 10): Promise<ScoreWithUsername[]> {
     }
 
     // Transform the data to flatten the user object
-    return (data || []).map((item: any) => ({
+    return (data || []).map((item: ScoreWithUserRelation) => ({
       id: item.id,
       user_id: item.user_id,
       score: item.score,
       created_at: item.created_at,
-      username: item.users.username
+      username: item.users[0].username
     }))
   } catch (error) {
     console.error('Error fetching top scores:', error)
