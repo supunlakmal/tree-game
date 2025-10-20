@@ -1,7 +1,8 @@
 "use client";
 
 import UserDisplay from "@/components/UserDisplay";
-import { clearStoredUsername, getStoredUsername, updateLastPlayed } from "@/lib/auth";
+import { clearStoredUsername, getStoredUsername, updateLastPlayed, updateUserCountry } from "@/lib/auth";
+import { detectUserCountry } from "@/lib/geo";
 import { saveScore } from "@/lib/scores";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -31,6 +32,15 @@ export default function Game() {
 
     // Update last played timestamp
     updateLastPlayed(storedUsername);
+
+    // Optionally update country on game start (in background)
+    detectUserCountry().then((country) => {
+      if (country) {
+        updateUserCountry(storedUsername, country);
+      }
+    }).catch(() => {
+      // Silent fail - country update is not critical
+    });
   }, [router]);
 
   // End game function

@@ -1,6 +1,7 @@
 "use client";
 
 import { loginOrRegister, setStoredUsername, validateUsername } from "@/lib/auth";
+import { detectUserCountry } from "@/lib/geo";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -9,6 +10,7 @@ export default function UsernameForm() {
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,8 +28,19 @@ export default function UsernameForm() {
     setError("");
 
     try {
-      // Login or register user
-      const result = await loginOrRegister(trimmed);
+      // Detect user's country (non-blocking, continues even if fails)
+      let country: string | null = null;
+      try {
+        setDetectingLocation(true);
+        country = await detectUserCountry();
+        setDetectingLocation(false);
+      } catch (err) {
+        console.warn("Country detection failed, continuing without it");
+        setDetectingLocation(false);
+      }
+
+      // Login or register user with country
+      const result = await loginOrRegister(trimmed, country);
 
       if (!result.success) {
         setError(result.error || "Failed to authenticate");
@@ -71,7 +84,7 @@ export default function UsernameForm() {
       {error && <div className="error-message">{error}</div>}
 
       <button type="submit" className="submit-button" disabled={!isValid || isSubmitting}>
-        {isSubmitting ? "Loading..." : "Start Game"}
+        {detectingLocation ? "Detecting location..." : isSubmitting ? "Loading..." : "Start Game"}
       </button>
 
       <div className="form-hint">Username must be 3-20 characters (letters, numbers, _, -)</div>

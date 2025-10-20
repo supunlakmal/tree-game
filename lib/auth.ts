@@ -77,10 +77,13 @@ export async function createUser(username: string): Promise<{ success: boolean; 
 
 /**
  * Login or register a user (unified authentication flow)
- * - If username exists: allows login (returns success)
- * - If username doesn't exist: creates new user
+ * - If username exists: allows login (updates country if provided and not set)
+ * - If username doesn't exist: creates new user with country
+ *
+ * @param username - The username to login/register
+ * @param country - Optional 2-letter country code (e.g., "US", "GB")
  */
-export async function loginOrRegister(username: string): Promise<{ success: boolean; error?: string }> {
+export async function loginOrRegister(username: string, country?: string | null): Promise<{ success: boolean; error?: string }> {
   try {
     const trimmed = username.trim()
 
@@ -89,13 +92,22 @@ export async function loginOrRegister(username: string): Promise<{ success: bool
 
     if (exists) {
       // User exists - allow login
+      // Optionally update country if provided and user doesn't have one
+      if (country) {
+        await updateUserCountry(trimmed, country)
+      }
       return { success: true }
     }
 
-    // User doesn't exist - create new user
+    // User doesn't exist - create new user with country
+    const insertData: { username: string; country?: string } = { username: trimmed }
+    if (country) {
+      insertData.country = country
+    }
+
     const { error } = await supabase
       .from('users')
-      .insert([{ username: trimmed }])
+      .insert([insertData])
 
     if (error) {
       // Handle duplicate username error (race condition)
@@ -110,6 +122,32 @@ export async function loginOrRegister(username: string): Promise<{ success: bool
   } catch (error) {
     console.error('Error in loginOrRegister:', error)
     return { success: false, error: 'Failed to authenticate. Please try again.' }
+  }
+}
+
+/**
+ * Updates user's country if not already set
+ */
+export async function updateUserCountry(username: string, country: string): Promise<void> {
+  try {
+    // Only update if country is not already set
+    const { data: userData } = await supabase
+      .from('users')
+      .select('country')
+      .eq('username', username)
+      .single()
+
+    if (userData && !userData.country) {
+      await supabase
+        .from('users')
+        .update({ country })
+        .eq('username', username)
+
+      console.log(`Updated country for ${username}: ${country}`)
+    }
+  } catch (error) {
+    console.error('Error updating user country:', error)
+    // Don't throw - this is not critical
   }
 }
 
