@@ -19,6 +19,8 @@ export default function Home() {
 
   return (
     <div className="landing-container">
+      <div className="landing-background"></div>
+      <div className="landing-overlay"></div>
       <div className="landing-content">
         <UsernameForm />
         <Leaderboard />
