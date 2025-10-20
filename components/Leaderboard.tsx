@@ -61,11 +61,7 @@ export default function Leaderboard() {
       ) : (
         <div className="leaderboard-list">
           {scores.map((score, index) => (
-            <div
-              key={score.id}
-              className={`leaderboard-entry ${getRankClass(index + 1)}`}
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
+            <div key={score.id} className={`leaderboard-entry ${getRankClass(index + 1)}`} style={{ animationDelay: `${index * 0.05}s` }}>
               <div className="leaderboard-rank">{getRankEmoji(index + 1)}</div>
               <div className="leaderboard-username">{score.username}</div>
               <div className="leaderboard-score">{score.score}</div>
