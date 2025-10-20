@@ -76,6 +76,44 @@ export async function createUser(username: string): Promise<{ success: boolean; 
 }
 
 /**
+ * Login or register a user (unified authentication flow)
+ * - If username exists: allows login (returns success)
+ * - If username doesn't exist: creates new user
+ */
+export async function loginOrRegister(username: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const trimmed = username.trim()
+
+    // Check if user exists
+    const exists = await checkUsernameExists(trimmed)
+
+    if (exists) {
+      // User exists - allow login
+      return { success: true }
+    }
+
+    // User doesn't exist - create new user
+    const { error } = await supabase
+      .from('users')
+      .insert([{ username: trimmed }])
+
+    if (error) {
+      // Handle duplicate username error (race condition)
+      if (error.code === '23505') {
+        // Username was created between our check and insert - treat as successful login
+        return { success: true }
+      }
+      throw error
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error in loginOrRegister:', error)
+    return { success: false, error: 'Failed to authenticate. Please try again.' }
+  }
+}
+
+/**
  * Updates the last_played timestamp for a user
  */
 export async function updateLastPlayed(username: string): Promise<void> {

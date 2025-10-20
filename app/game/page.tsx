@@ -1,7 +1,7 @@
 "use client";
 
 import UserDisplay from "@/components/UserDisplay";
-import { getStoredUsername, updateLastPlayed } from "@/lib/auth";
+import { clearStoredUsername, getStoredUsername, updateLastPlayed } from "@/lib/auth";
 import { saveScore } from "@/lib/scores";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -84,7 +84,7 @@ export default function Game() {
     const GROUND_SEGMENTS_Y = 45; // Ground geometry detail (Y axis)
     const TREE_DISTRIBUTION_AREA = 1800; // Area where trees are randomly placed
     const CAR_MOVEMENT_BOUNDS = 990; // Maximum distance car can travel from center
-    const TREE_COUNT = 3000; // Number of palm trees to create
+    const TREE_COUNT = 450; // Number of palm trees to create
     const FALLBACK_BOX_COUNT = 100; // Number of fallback boxes if FBX fails
 
     // Initialize scene with pure black atmosphere
@@ -603,14 +603,14 @@ export default function Game() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   // Get timer color based on remaining time
   const getTimerClass = () => {
-    if (timeRemaining > 60) return 'timer-green';
-    if (timeRemaining > 30) return 'timer-yellow';
-    return 'timer-red';
+    if (timeRemaining > 60) return "timer-green";
+    if (timeRemaining > 30) return "timer-yellow";
+    return "timer-red";
   };
 
   return (
@@ -635,9 +635,7 @@ export default function Game() {
       )}
 
       <div ref={containerRef} className="game-container" />
-      <div className="controls">
-        Drive with arrow keys or WASD | 2 minute timed game
-      </div>
+      <div className="controls">Drive with arrow keys or WASD | 2 minute timed game</div>
 
       {/* Game Over Modal */}
       {gameOver && (
@@ -648,11 +646,7 @@ export default function Game() {
               <span className="score-label">Final Score:</span>
               <span className="score-value">{finalScore}</span>
             </div>
-            {scoreSaved ? (
-              <p className="save-status success">Score saved successfully!</p>
-            ) : (
-              <p className="save-status error">Failed to save score</p>
-            )}
+            {scoreSaved ? <p className="save-status success">Score saved successfully!</p> : <p className="save-status error">Failed to save score</p>}
             <div className="game-over-actions">
               <button
                 onClick={() => {
@@ -667,10 +661,13 @@ export default function Game() {
                 Play Again
               </button>
               <button
-                onClick={() => router.push("/")}
+                onClick={() => {
+                  clearStoredUsername();
+                  router.push("/");
+                }}
                 className="home-button"
               >
-                Back to Home
+                Logout
               </button>
             </div>
           </div>
