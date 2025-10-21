@@ -161,7 +161,157 @@ canvas {
   clip-path: polygon(26% 0%, 74% 0%, 74% 38%, 100% 38%, 50% 100%, 0% 38%, 26% 38%);
 }
 
+.game-hud {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0) + clamp(0.75rem, 2.2vw, 1.5rem));
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: clamp(0.75rem, 2.5vw, 1.75rem);
+  padding: 0 clamp(0.75rem, 4vw, 2.25rem);
+  pointer-events: none;
+  z-index: 105;
+}
+
+.game-hud__item {
+  display: flex;
+  align-items: stretch;
+  pointer-events: auto;
+}
+
+.game-hud__item--timer {
+  flex: 0 0 auto;
+  order: 1;
+}
+
+.game-hud__item--hits {
+  flex: 1 1 220px;
+  justify-content: center;
+  order: 2;
+}
+
+.game-hud__item--player {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  order: 3;
+}
+
+.game-hud .game-timer {
+  position: static;
+  top: auto;
+  left: auto;
+  gap: clamp(0.45rem, 1.8vw, 0.85rem);
+  padding: clamp(0.55rem, 1.9vw, 0.95rem) clamp(0.9rem, 3vw, 1.45rem);
+  min-width: clamp(120px, 28vw, 180px);
+  background: linear-gradient(145deg, rgba(6, 18, 42, 0.65) 0%, rgba(4, 10, 22, 0.6) 100%);
+  border: 1px solid rgba(108, 180, 255, 0.35);
+  border-radius: clamp(10px, 2.6vw, 14px);
+  box-shadow: 0 16px 30px rgba(12, 26, 56, 0.35);
+}
+
+.game-hud .timer-icon {
+  font-size: clamp(0.95rem, 2.2vw, 1.25rem);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+  color: rgba(180, 220, 255, 0.9);
+}
+
+.game-hud .timer-value {
+  font-size: clamp(1.1rem, 3vw, 1.55rem);
+  min-width: auto;
+}
+
+.game-hud .hit-counter {
+  position: static;
+  top: auto;
+  left: auto;
+  transform: none;
+  width: auto;
+  max-width: clamp(200px, 50vw, 320px);
+  padding: clamp(0.65rem, 2.2vw, 1.05rem) clamp(1.1rem, 3.2vw, 1.65rem);
+  flex-direction: row;
+  justify-content: center;
+  align-items: baseline;
+  gap: clamp(0.5rem, 2.2vw, 1rem);
+  background: linear-gradient(140deg, rgba(32, 18, 0, 0.72) 0%, rgba(64, 32, 0, 0.55) 100%);
+  border: 1px solid rgba(255, 186, 80, 0.45);
+  border-radius: clamp(12px, 3vw, 16px);
+  box-shadow: 0 16px 32px rgba(142, 77, 0, 0.28);
+}
+
+.game-hud .hit-counter-label {
+  font-size: clamp(0.68rem, 1.8vw, 0.95rem);
+  letter-spacing: 0.22em;
+  color: rgba(255, 196, 120, 0.85);
+}
+
+.game-hud .hit-counter-value {
+  font-size: clamp(1.6rem, 4.2vw, 2.35rem);
+  min-width: auto;
+}
+
+.game-hud .user-display {
+  pointer-events: auto;
+}
+
 @media (max-width: 720px) {
+  .landing-shell {
+    gap: clamp(1.75rem, 6vw, 3rem);
+    align-items: stretch;
+  }
+
+  .landing-hero {
+    align-items: flex-start;
+    text-align: left;
+    gap: clamp(0.5rem, 4vw, 1.25rem);
+  }
+
+  .landing-tagline {
+    max-width: 100%;
+  }
+
+  .landing-content {
+    grid-template-columns: 1fr;
+    gap: clamp(1.25rem, 5vw, 2rem);
+  }
+
+  .landing-pane {
+    width: 100%;
+  }
+
+  .game-hud {
+    gap: clamp(0.6rem, 4vw, 1.5rem);
+    padding: 0 clamp(0.6rem, 6vw, 1.75rem);
+  }
+
+  .game-hud__item {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .game-hud__item--timer,
+  .game-hud__item--player {
+    flex: 1 1 50%;
+  }
+
+  .game-hud__item--player {
+    justify-content: center;
+  }
+
+  .game-hud__item--hits {
+    flex-basis: 100%;
+  }
+
+  .game-hud .game-timer,
+  .game-hud .hit-counter,
+  .game-hud .user-display {
+    margin: 0 auto;
+  }
+
   .mobile-controls {
     bottom: calc(env(safe-area-inset-bottom, 0) + clamp(2.75rem, 14vw, 5rem));
     padding: 0 clamp(1rem, 6vw, 2rem);
@@ -181,6 +331,36 @@ canvas {
 }
 
 @media (max-width: 480px) {
+  .landing-hero {
+    align-items: center;
+    text-align: center;
+  }
+
+  .landing-tagline {
+    max-width: 100%;
+  }
+
+  .game-hud {
+    gap: clamp(0.5rem, 5vw, 1.1rem);
+  }
+
+  .game-hud__item--timer,
+  .game-hud__item--player {
+    flex-basis: 100%;
+  }
+
+  .game-hud__item--player {
+    order: 2;
+  }
+
+  .game-hud__item--hits {
+    order: 3;
+  }
+
+  .game-hud .hit-counter {
+    max-width: 100%;
+  }
+
   .mobile-controls {
     bottom: calc(env(safe-area-inset-bottom, 0) + clamp(2rem, 18vw, 4rem));
     padding: 0 clamp(0.75rem, 7vw, 1.5rem);
@@ -206,14 +386,13 @@ canvas {
     bottom: calc(env(safe-area-inset-bottom, 0) + clamp(1.5rem, 12vh, 3.25rem));
   }
 
-  .game-timer,
-  .user-display {
-    top: calc(env(safe-area-inset-top, 0) + 0.6rem);
+  .game-hud {
+    top: calc(env(safe-area-inset-top, 0) + clamp(0.5rem, 4vh, 0.85rem));
+    gap: clamp(0.5rem, 3vw, 1.1rem);
   }
 
-  .hit-counter {
-    top: calc(env(safe-area-inset-top, 0) + 2.75rem);
-    padding: clamp(0.7rem, 2vw, 1rem) clamp(1rem, 4vw, 1.6rem);
+  .game-hud .hit-counter {
+    padding: clamp(0.55rem, 1.8vw, 0.85rem) clamp(0.85rem, 2.8vw, 1.4rem);
   }
 
   .controls {
@@ -229,9 +408,10 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem);
   box-sizing: border-box;
   overflow: hidden;
+  overflow-y: auto;
 }
 
 /* Animated GIF Background */
@@ -270,21 +450,66 @@ canvas {
   pointer-events: none;
 }
 
-.landing-content {
+.landing-shell {
   position: relative;
   display: flex;
-  gap: 2rem;
-  align-items: flex-start;
-  justify-content: center;
-  flex-wrap: wrap;
-  max-width: 1200px;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(2rem, 6vw, 3.5rem);
+  width: min(1100px, 100%);
+  z-index: 3;
+}
+
+.landing-hero {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  text-align: center;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.landing-logo {
+  font-size: clamp(2.25rem, 7vw, 3.6rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.95) 0%, rgba(128, 170, 255, 0.9) 48%, rgba(210, 226, 255, 0.95) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 12px 28px rgba(24, 42, 88, 0.45);
+}
+
+.landing-tagline {
+  max-width: min(520px, 85%);
+  font-size: clamp(1rem, 2.6vw, 1.4rem);
+  line-height: 1.5;
+  color: rgba(216, 226, 255, 0.9);
+  margin: 0;
+}
+
+.landing-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+  align-items: stretch;
+  justify-items: center;
   width: 100%;
   z-index: 3;
 }
 
+.landing-pane {
+  width: min(100%, 440px);
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
 /* Username Form */
 .username-form {
-  width: 90%;
+  width: 100%;
   max-width: 420px;
   padding: 3rem 2.5rem;
   background: rgba(10, 10, 10, 0.92);
@@ -414,7 +639,7 @@ canvas {
 
 /* Leaderboard */
 .leaderboard-container {
-  width: 90%;
+  width: 100%;
   max-width: 420px;
   padding: 2rem 1.5rem;
   background: rgba(10, 10, 10, 0.92);
@@ -736,19 +961,32 @@ canvas {
 
 /* User Display (in game) */
 .user-display {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0) + 1.25rem);
-  right: clamp(0.75rem, 3vw, 1.75rem);
   display: flex;
   align-items: center;
-  gap: clamp(0.4rem, 2vw, 0.8rem);
+  gap: clamp(0.35rem, 1.5vw, 0.6rem);
   padding: clamp(0.5rem, 2vw, 0.9rem) clamp(0.75rem, 2.5vw, 1.25rem);
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: clamp(6px, 2vw, 10px);
-  z-index: 100;
-  backdrop-filter: blur(8px);
   box-sizing: border-box;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.user-display--overlay {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0) + 1.1rem);
+  right: clamp(0.75rem, 4vw, 1.5rem);
+  z-index: 100;
+}
+
+.user-display--hud {
+  position: static;
+  top: auto;
+  right: auto;
+  background: rgba(0, 0, 0, 0.52);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.4);
 }
 
 .user-info {
@@ -921,22 +1159,24 @@ canvas {
 
 /* Responsive Design */
 @media (max-width: 640px) {
-  .landing-content {
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
+  .landing-logo {
+    font-size: clamp(2rem, 8vw, 2.75rem);
+  }
+
+  .landing-tagline {
+    font-size: clamp(0.95rem, 3.5vw, 1.2rem);
   }
 
   .username-form {
-    padding: 2rem 1.5rem;
+    padding: clamp(1.75rem, 5vw, 2.1rem) clamp(1.25rem, 4.8vw, 1.75rem);
   }
 
   .form-title {
-    font-size: 2rem;
+    font-size: clamp(1.8rem, 6vw, 2.1rem);
   }
 
   .leaderboard-container {
-    padding: 1.5rem 1rem;
+    padding: clamp(1.5rem, 5vw, 1.75rem) clamp(1.1rem, 4.5vw, 1.5rem);
   }
 
   .leaderboard-title {
@@ -972,48 +1212,6 @@ canvas {
   .leaderboard-score {
     font-size: 1rem;
     min-width: 40px;
-  }
-
-  .hit-counter {
-    top: calc(env(safe-area-inset-top, 0) + 3.25rem);
-    padding: clamp(0.75rem, 3vw, 1.1rem) clamp(1rem, 6vw, 1.8rem);
-    width: clamp(150px, 60vw, 220px);
-  }
-
-  .hit-counter-icon {
-    font-size: clamp(1.25rem, 6vw, 1.6rem);
-  }
-
-  .hit-counter-label {
-    font-size: clamp(0.6rem, 2vw, 0.75rem);
-    letter-spacing: clamp(1px, 0.5vw, 1.5px);
-  }
-
-  .hit-counter-value {
-    font-size: clamp(1.6rem, 8vw, 2.2rem);
-    min-width: clamp(44px, 20vw, 60px);
-  }
-
-  .game-timer {
-    top: calc(env(safe-area-inset-top, 0) + 0.9rem);
-    left: clamp(0.75rem, 5vw, 1.25rem);
-    padding: clamp(0.55rem, 2.5vw, 0.85rem) clamp(0.8rem, 4vw, 1.25rem);
-    gap: clamp(0.3rem, 2vw, 0.6rem);
-  }
-
-  .timer-icon {
-    font-size: clamp(1rem, 4vw, 1.3rem);
-  }
-
-  .timer-value {
-    font-size: clamp(1rem, 4.5vw, 1.3rem);
-    min-width: clamp(46px, 20vw, 60px);
-  }
-
-  .user-display {
-    top: calc(env(safe-area-inset-top, 0) + 0.9rem);
-    right: clamp(0.75rem, 5vw, 1.25rem);
-    padding: clamp(0.45rem, 2.5vw, 0.75rem) clamp(0.6rem, 3vw, 1rem);
   }
 
   .user-label {
