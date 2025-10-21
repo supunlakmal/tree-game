@@ -87,23 +87,28 @@ export default function Game() {
     const sceneBoxes: THREE.Object3D[] = [];
 
     const keys: { [key: number]: boolean } = {};
+    const WORLD_UP = new THREE.Vector3(0, 0, 1);
+    const tempVec1 = new THREE.Vector3();
+    const tempVec2 = new THREE.Vector3();
+    const tempVec3 = new THREE.Vector3();
+    const tempQuat1 = new THREE.Quaternion();
+    const tempQuat2 = new THREE.Quaternion();
 
     // Ground and world configuration
-    const GROUND_SIZE = 2000; // Size of the ground plane (width and height)
-    const GROUND_SEGMENTS_X = 40; // Ground geometry detail (X axis)
-    const GROUND_SEGMENTS_Y = 45; // Ground geometry detail (Y axis)
-    const TREE_DISTRIBUTION_AREA = 1800; // Area where trees are randomly placed
-    const CAR_MOVEMENT_BOUNDS = 990; // Maximum distance car can travel from center
-    const TREE_COUNT = 1000; // Number of palm trees to create
+    const PLANET_RADIUS = 520; // Radius of the spherical ground
+    const PLANET_SEGMENTS = 128; // Geometry detail for the globe
+    const CAR_SURFACE_OFFSET = 12; // How far above the ground the car floats
+    const TREE_COUNT = 700; // Number of palm trees to create
     const FALLBACK_BOX_COUNT = 100; // Number of fallback boxes if FBX fails
 
     // Initialize scene with pure black atmosphere
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x000000, 20, 600);
+    scene.fog = new THREE.Fog(0x000000, PLANET_RADIUS * 0.25, PLANET_RADIUS * 4);
 
     // Initialize camera
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 10, 600);
-    camera.position.z = 90;
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, PLANET_RADIUS * 6);
+    camera.position.set(0, -PLANET_RADIUS * 0.4, PLANET_RADIUS + 160);
+    camera.up.set(0, 0, 1);
 
     // Initialize renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -132,6 +137,10 @@ export default function Game() {
     // Minimal ambient light to create dramatic darkness
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.01);
     scene.add(ambientLight);
+
+    // Group that holds the spherical ground and all scenery attached to it
+    const planetGroup = new THREE.Group();
+    scene.add(planetGroup);
 
     // Noise map texture generator (fixed: normalize values to 0-255 range)
     function noiseMap(size = 256, intensity = 60, repeat = 0) {
@@ -251,16 +260,13 @@ export default function Game() {
             this.add(light);
             return light;
           });
+
+        // Position car on top of the globe
+        this.position.set(0, 0, PLANET_RADIUS + CAR_SURFACE_OFFSET);
       }
 
       update() {
-        const prev = {
-          x: this.position.x,
-          y: this.position.y,
-          rot: this.rotation.z,
-        };
-
-        const steerPower = 0.0006;
+        const steerPower = 0.0008;
 
         // Steering
         if (keys[39] || keys[68]) {
@@ -287,6 +293,8 @@ export default function Game() {
         this.speed *= 1 - Math.abs(this.steering / 2);
         this.angle += this.steering * this.speed;
 
+        const forward = tempVec1.set(Math.cos(this.angle), -Math.sin(this.angle), 0).normalize();
+
         // Rotate wheels
         if (this.wheels) {
           this.wheels.forEach((wheel) => {
@@ -294,12 +302,15 @@ export default function Game() {
           });
         }
 
-        // Update position
-        const xdir = this.speed * Math.cos(this.angle);
-        const ydir = this.speed * Math.sin(this.angle);
+        // Rotate the planet under the car to simulate traveling across the globe
+        const rotationAmount = this.speed / PLANET_RADIUS;
+        if (Math.abs(rotationAmount) > 1e-5) {
+          const axis = tempVec2.copy(forward).cross(WORLD_UP);
+          if (axis.lengthSq() > 1e-8) {
+            planetGroup.rotateOnWorldAxis(axis.normalize(), rotationAmount);
+          }
+        }
 
-        this.position.x += xdir;
-        this.position.y += -ydir;
         this.rotation.z = -this.angle;
 
         // Update headlights
@@ -309,16 +320,15 @@ export default function Game() {
           });
         }
 
-        // Keep car within bounds
-        this.position.x = this.position.x > CAR_MOVEMENT_BOUNDS || this.position.x < -CAR_MOVEMENT_BOUNDS ? prev.x : this.position.x;
-        this.position.y = this.position.y > CAR_MOVEMENT_BOUNDS || this.position.y < -CAR_MOVEMENT_BOUNDS ? prev.y : this.position.y;
+        // Update camera to stay behind the car and slightly above
+        const desiredCameraPosition = tempVec2
+          .copy(this.position)
+          .add(tempVec3.copy(forward).multiplyScalar(-80));
+        desiredCameraPosition.addScaledVector(WORLD_UP, 45);
+        camera.position.lerp(desiredCameraPosition, 0.08);
 
-        // Update camera
-        camera.position.x += (this.position.x - camera.position.x) * 0.1;
-        camera.position.y = this.position.y - 40 - this.speed * 10;
-
-        // Look at point between car (z=0) and ground (z=-5) for better visibility
-        camera.lookAt(new THREE.Vector3(this.position.x, this.position.y, -2.5));
+        const lookTarget = tempVec3.copy(this.position).addScaledVector(forward, 60);
+        camera.lookAt(lookTarget);
       }
     }
 
@@ -341,43 +351,49 @@ export default function Game() {
     scene.add(car);
     renderCalls.push(car.update.bind(car));
 
+    const initialForward = new THREE.Vector3(1, 0, 0);
+    camera.position.copy(car.position).addScaledVector(initialForward, -80).addScaledVector(WORLD_UP, 45);
+    const initialLookTarget = car.position.clone().addScaledVector(initialForward, 60);
+    camera.lookAt(initialLookTarget);
+
     // Create snowy ground
-    const noise = noiseMap(256, 20, 30);
-    function snowyGround() {
-      const geometry = new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, GROUND_SEGMENTS_X, GROUND_SEGMENTS_Y);
-
-      // Modern Three.js uses BufferGeometry attributes
-      const positionAttribute = geometry.getAttribute("position");
-      const positions = positionAttribute.array as Float32Array;
-
-      for (let i = 0; i < positions.length; i += 3) {
-        const idx = i / 3;
-        positions[i] += (Math.cos(idx * idx) + 1 / 2) * 2; // x
-        positions[i + 1] += (Math.cos(idx) + 1 / 2) * 2; // y
-        positions[i + 2] += (Math.sin(idx * idx * idx) + 1 / 2) * -4; // z (fixed: += instead of =)
-      }
-
-      positionAttribute.needsUpdate = true;
+    const noise = noiseMap(512, 24, 12);
+    function randomPointOnPlanet(radius: number) {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = 2 * Math.PI * u;
+      const phi = Math.acos(2 * v - 1);
+      const sinPhi = Math.sin(phi);
+      const normal = new THREE.Vector3(
+        sinPhi * Math.cos(theta),
+        sinPhi * Math.sin(theta),
+        Math.cos(phi)
+      );
+      return { normal, position: normal.clone().multiplyScalar(radius) };
+    }
+    function createPlanetSurface() {
+      const geometry = new THREE.SphereGeometry(PLANET_RADIUS, PLANET_SEGMENTS, PLANET_SEGMENTS);
       geometry.computeVertexNormals();
 
       const material = new THREE.MeshPhongMaterial({
-        color: 0xffffff,
+        color: 0xdedede,
         shininess: 80,
         bumpMap: noise,
-        bumpScale: 0.15,
+        bumpScale: 0.85,
+        specular: new THREE.Color(0x222222),
       });
 
-      const plane = new THREE.Mesh(geometry, material);
-      plane.receiveShadow = true;
-      plane.position.z = -5;
+      const planet = new THREE.Mesh(geometry, material);
+      planet.receiveShadow = true;
+      planet.castShadow = false;
 
-      return plane;
+      return planet;
     }
-    scene.add(snowyGround());
+    planetGroup.add(createPlanetSurface());
 
     // Load and create random palm trees
     const treeContainer = new THREE.Object3D();
-    scene.add(treeContainer);
+    planetGroup.add(treeContainer);
 
     const loader = new FBXLoader();
     loader.load(
@@ -395,6 +411,7 @@ export default function Game() {
 
         // Create palm tree instances
         const treeCount = TREE_COUNT;
+        const baseTreeQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
         for (let i = 0; i < treeCount; i++) {
           // Clone the loaded palm tree model
           const tree = palmTreeModel.clone();
@@ -427,15 +444,14 @@ export default function Game() {
           const scale = 10.0; // Scale between 5.0 and 10.0
           tree.scale.set(scale, scale, scale);
 
-          // Fix orientation - rotate to make tree stand upright
-          // FBX models often need 90-degree rotation to align with Three.js coordinate system
-          tree.rotation.x = Math.PI / 2; // Rotate 90 degrees to make tree vertical
+          // Position tree on the globe
+          const { normal, position } = randomPointOnPlanet(PLANET_RADIUS);
+          tree.quaternion.copy(baseTreeQuaternion);
+          tree.quaternion.premultiply(tempQuat2.setFromAxisAngle(WORLD_UP, Math.random() * Math.PI * 2));
+          tree.quaternion.premultiply(tempQuat1.setFromUnitVectors(WORLD_UP, normal));
 
-          // Random position
-          tree.position.x = (Math.random() - 0.5) * TREE_DISTRIBUTION_AREA;
-          tree.position.y = (Math.random() - 0.5) * TREE_DISTRIBUTION_AREA;
-          // Embed tree into ground so trunk base sits at ground level
-          tree.position.z = -11;
+          // Sink slightly into the surface so roots meet the snow
+          tree.position.copy(position.clone().add(normal.clone().multiplyScalar(-6)));
 
           // Initially invisible (will be revealed by headlights)
           tree.visible = false;
@@ -466,10 +482,10 @@ export default function Game() {
             opacity: 0, // Start invisible
           });
           const box = new THREE.Mesh(geometry, material);
-          box.position.x = (Math.random() - 0.5) * TREE_DISTRIBUTION_AREA;
-          box.position.y = (Math.random() - 0.5) * TREE_DISTRIBUTION_AREA;
-          box.position.z = -5 + size / 2;
-          box.rotation.z = Math.random() * Math.PI * 2;
+          const { normal, position } = randomPointOnPlanet(PLANET_RADIUS);
+          box.quaternion.copy(tempQuat2.setFromAxisAngle(WORLD_UP, Math.random() * Math.PI * 2));
+          box.quaternion.premultiply(tempQuat1.setFromUnitVectors(WORLD_UP, normal));
+          box.position.copy(position.clone().add(normal.clone().multiplyScalar(size / 2)));
           box.castShadow = true;
           box.receiveShadow = true;
           box.visible = false;
@@ -483,58 +499,49 @@ export default function Game() {
     function updateBoxVisibility() {
       if (!car || !car.lights || car.lights.length === 0) return;
 
-      const lightRange = 300;
+      const carPosition = tempVec1.set(0, 0, 0);
+      car.getWorldPosition(carPosition);
+      const carForward = tempVec2.set(1, 0, 0).applyQuaternion(car.quaternion).normalize();
+
+      const lightRange = 320;
       const lightAngle = Math.PI / 3.5;
+      const lightAngleCos = Math.cos(lightAngle);
 
       sceneBoxes.forEach((box) => {
-        const dx = box.position.x - car.position.x;
-        const dy = box.position.y - car.position.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        // Calculate light intensity factors
         let intensity = 0;
 
-        if (car.lightsOn && distance <= lightRange) {
-          // Distance factor: 1.0 at car position, fades to 0.0 at lightRange
-          const distanceFactor = 1.5 - distance / lightRange;
+        const toBox = tempVec3;
+        box.getWorldPosition(toBox);
+        toBox.sub(carPosition);
+        const distance = toBox.length();
 
-          // Angle factor: calculate how aligned the box is with headlight direction
-          const carAngle = car.angle;
-          const angleToBox = Math.atan2(-dy, dx);
-          let angleDiff = angleToBox - carAngle;
-
-          // Normalize angle difference to [-PI, PI]
-          while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-          while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-
-          // Angle factor: 1.0 at center of cone, fades to 0.0 at edges
-          const angleFactor = Math.max(0, 1.0 - Math.abs(angleDiff) / lightAngle);
-
-          // Combine factors with smooth falloff
-          intensity = distanceFactor * angleFactor;
-
-          // Apply smooth curve for more natural falloff
-          intensity = Math.pow(intensity, 0.7); // Adjust power for softer/harder falloff
+        if (car.lightsOn && distance > 0 && distance <= lightRange) {
+          const directionDot = toBox.normalize().dot(carForward);
+          if (directionDot > lightAngleCos) {
+            const distanceFactor = 1.3 - distance / lightRange;
+            const angleFactor = (directionDot - lightAngleCos) / (1 - lightAngleCos);
+            intensity = Math.pow(Math.max(0, distanceFactor * angleFactor), 0.7);
+          }
         }
 
-        // Apply opacity to all materials in the object
+        intensity = Math.min(1, intensity);
+
         box.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
             if (mesh.material) {
-              if (Array.isArray(mesh.material)) {
-                mesh.material.forEach((mat) => {
+              const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+              materials.forEach((mat) => {
+                if ("opacity" in mat) {
+                  mat.transparent = true;
                   mat.opacity = intensity;
-                });
-              } else {
-                mesh.material.opacity = intensity;
-              }
+                }
+              });
             }
           }
         });
 
-        // Optimization: only render when opacity > 0
-        box.visible = intensity > 0.01;
+        box.visible = intensity > 0.02;
       });
     }
 
@@ -542,31 +549,23 @@ export default function Game() {
     function checkCollisions() {
       if (!car) return;
 
-      const collisionThreshold = 15; // Distance for collision detection
+      const carPosition = tempVec1.set(0, 0, 0);
+      car.getWorldPosition(carPosition);
+      const collisionThreshold = 28;
 
-      // Iterate backwards to safely remove items
       for (let i = sceneBoxes.length - 1; i >= 0; i--) {
         const box = sceneBoxes[i];
+        const toBox = tempVec2;
+        box.getWorldPosition(toBox);
+        const distance = toBox.distanceTo(carPosition);
 
-        // Calculate distance between car and box
-        const dx = box.position.x - car.position.x;
-        const dy = box.position.y - car.position.y;
-        const dz = box.position.z - car.position.z;
-        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-        // Check if collision occurred
         if (distance < collisionThreshold) {
-          // Increment hit counter
           hitCounterRef.current += 1;
           setHitCount(hitCounterRef.current);
 
-          // Log to console
           console.log("Hit! Total hits:", hitCounterRef.current);
 
-          // Remove tree/object from container
-          treeContainer.remove(box);
-
-          // Remove from array
+          box.parent?.remove(box);
           sceneBoxes.splice(i, 1);
         }
       }
