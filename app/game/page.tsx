@@ -155,21 +155,29 @@ export default function Game() {
 
   return (
     <>
-      <UserDisplay username={username} />
+      <div className="game-hud">
+        {!gameOver && (
+          <div className="game-hud__item game-hud__item--timer">
+            <div className={`game-timer ${getTimerClass()}`}>
+              <div className="timer-icon">Timer</div>
+              <div className="timer-value">{formatTime(timeRemaining)}</div>
+            </div>
+          </div>
+        )}
 
-      {!gameOver && (
-        <div className={`game-timer ${getTimerClass()}`}>
-          <div className="timer-icon">Timer</div>
-          <div className="timer-value">{formatTime(timeRemaining)}</div>
-        </div>
-      )}
+        {!gameOver && (
+          <div className="game-hud__item game-hud__item--hits">
+            <div className="hit-counter">
+              <div className="hit-counter-label">Hits</div>
+              <div className="hit-counter-value">{hitCount}</div>
+            </div>
+          </div>
+        )}
 
-      {!gameOver && (
-        <div className="hit-counter">
-          <div className="hit-counter-label">Hits</div>
-          <div className="hit-counter-value">{hitCount}</div>
+        <div className="game-hud__item game-hud__item--player">
+          <UserDisplay username={username} variant="hud" />
         </div>
-      )}
+      </div>
 
       <div ref={containerRef} className="game-container" />
       <div className="controls">{controlsMessage}</div>

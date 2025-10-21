@@ -21,9 +21,19 @@ export default function Home() {
     <div className="landing-container">
       <div className="landing-background"></div>
       <div className="landing-overlay"></div>
-      <div className="landing-content">
-        <UsernameForm />
-        <Leaderboard />
+      <div className="landing-shell">
+        <header className="landing-hero">
+          <div className="landing-logo">Night Drive</div>
+          <p className="landing-tagline">Race sunsets, dodge dunes, climb the leaderboard.</p>
+        </header>
+        <div className="landing-content">
+          <section className="landing-pane landing-pane--form">
+            <UsernameForm />
+          </section>
+          <section className="landing-pane landing-pane--leaderboard">
+            <Leaderboard />
+          </section>
+        </div>
       </div>
     </div>
   );
