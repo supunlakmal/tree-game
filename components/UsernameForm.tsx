@@ -35,7 +35,7 @@ export default function UsernameForm() {
         country = await detectUserCountry();
         setDetectingLocation(false);
       } catch (err) {
-        console.warn("Country detection failed, continuing without it");
+        console.warn("Country detection failed, continuing without it", err);
         setDetectingLocation(false);
       }
 
@@ -54,6 +54,7 @@ export default function UsernameForm() {
       // Navigate to game
       router.push("/game");
     } catch (err) {
+      console.error("Authentication error", err);
       setError("An error occurred. Please try again.");
       setIsSubmitting(false);
     }
