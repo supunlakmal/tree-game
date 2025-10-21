@@ -9,6 +9,7 @@ export interface Score {
 
 export interface ScoreWithUsername extends Score {
   username: string;
+  country?: string;
 }
 
 /**

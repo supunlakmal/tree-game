@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getTopScores, ScoreWithUsername } from "@/lib/scores";
+import { getCountryFlag } from "@/lib/geo";
 
 export default function Leaderboard() {
   const [scores, setScores] = useState<ScoreWithUsername[]>([]);
@@ -63,7 +64,10 @@ export default function Leaderboard() {
           {scores.map((score, index) => (
             <div key={score.id} className={`leaderboard-entry ${getRankClass(index + 1)}`} style={{ animationDelay: `${index * 0.05}s` }}>
               <div className="leaderboard-rank">{getRankEmoji(index + 1)}</div>
-              <div className="leaderboard-username">{score.username}</div>
+              <div className="leaderboard-username">
+                {score.country && <span className="country-flag">{getCountryFlag(score.country)} </span>}
+                {score.username}
+              </div>
               <div className="leaderboard-score">{score.score}</div>
             </div>
           ))}
