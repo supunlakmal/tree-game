@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import UserDisplay from "@/components/UserDisplay";
+import { MobileControls } from "@/components/MobileControls";
 import { clearStoredUsername, getStoredUsername, updateLastPlayed, updateUserCountry } from "@/lib/auth";
 import { detectUserCountry } from "@/lib/geo";
 import { GAME_DURATION_SECONDS } from "@/lib/game/config";
@@ -22,6 +23,7 @@ export default function Game() {
   const [scoreSaved, setScoreSaved] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(GAME_DURATION_SECONDS);
   const [hitCount, setHitCount] = useState(0);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
     const storedUsername = getStoredUsername();
@@ -95,6 +97,42 @@ export default function Game() {
     return () => window.clearInterval(timerId);
   }, [username, gameOver, endGame]);
 
+  useEffect(() => {
+    const detectTouchDevice = () => {
+      if (typeof window === "undefined" || typeof navigator === "undefined") {
+        return false;
+      }
+
+      const nav = navigator as Navigator & { msMaxTouchPoints?: number };
+      const hasTouchPoints =
+        (typeof nav.maxTouchPoints === "number" && nav.maxTouchPoints > 0) ||
+        (typeof nav.msMaxTouchPoints === "number" && nav.msMaxTouchPoints > 0);
+
+      const pointerCoarse =
+        typeof window.matchMedia === "function" ? window.matchMedia("(pointer: coarse)").matches : false;
+
+      const userAgentIndicatesMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+
+      return Boolean(pointerCoarse || hasTouchPoints || userAgentIndicatesMobile);
+    };
+
+    const updateTouchState = () => {
+      setIsTouchDevice(detectTouchDevice());
+    };
+
+    updateTouchState();
+
+    window.addEventListener("resize", updateTouchState);
+    window.addEventListener("orientationchange", updateTouchState);
+
+    return () => {
+      window.removeEventListener("resize", updateTouchState);
+      window.removeEventListener("orientationchange", updateTouchState);
+    };
+  }, []);
+
   if (!username) {
     return null;
   }
@@ -110,6 +148,10 @@ export default function Game() {
     if (timeRemaining > 30) return "timer-yellow";
     return "timer-red";
   };
+
+  const controlsMessage = isTouchDevice
+    ? "Tap the on-screen arrows to drive | 2 minute timed game"
+    : "Drive with arrow keys or WASD | 2 minute timed game";
 
   return (
     <>
@@ -130,7 +172,9 @@ export default function Game() {
       )}
 
       <div ref={containerRef} className="game-container" />
-      <div className="controls">Drive with arrow keys or WASD | 2 minute timed game</div>
+      <div className="controls">{controlsMessage}</div>
+
+      {isTouchDevice && !gameOver && <MobileControls engineRef={engineRef} />}
 
       {gameOver && (
         <div className="game-over-modal">

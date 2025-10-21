@@ -26,6 +26,7 @@ export class GameEngine {
   private readonly worldUp = new THREE.Vector3(0, 0, 1);
 
   private resizeHandler?: () => void;
+  private visualViewportHandler?: () => void;
   private car!: Car;
   private dustSystem!: DustParticleSystem;
   private skyAssets: ReturnType<typeof createSkyDome> | null = null;
@@ -83,6 +84,10 @@ export class GameEngine {
     return this.hitCount;
   }
 
+  setKeyState(keyCode: number, isPressed: boolean) {
+    this.keyState[keyCode] = isPressed;
+  }
+
   private initializeScene() {
     this.scene.fog = new THREE.Fog(0x000000, PLANET_RADIUS * 0.25, PLANET_RADIUS * 4);
   }
@@ -91,7 +96,9 @@ export class GameEngine {
     const { container } = this.options;
 
     this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.domElement.style.width = "100%";
+    this.renderer.domElement.style.height = "100%";
+    this.updateRendererSize();
     this.renderer.setClearColor(0x000000);
     this.renderer.toneMapping = THREE.LinearToneMapping;
     this.renderer.shadowMap.enabled = true;
@@ -100,11 +107,27 @@ export class GameEngine {
     container.appendChild(this.renderer.domElement);
 
     this.resizeHandler = () => {
-      this.camera.aspect = window.innerWidth / window.innerHeight;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.updateRendererSize();
     };
     window.addEventListener("resize", this.resizeHandler);
+
+    if (window.visualViewport) {
+      this.visualViewportHandler = () => {
+        this.updateRendererSize();
+      };
+      window.visualViewport.addEventListener("resize", this.visualViewportHandler);
+    }
+  }
+
+  private updateRendererSize() {
+    const { container } = this.options;
+    const width = container.clientWidth || window.innerWidth || 1;
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const height = container.clientHeight || viewportHeight || 1;
+
+    this.camera.aspect = width / Math.max(height, 1);
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height, false);
   }
 
   private initializeWorld() {
@@ -163,18 +186,23 @@ export class GameEngine {
   private removeEventHandlers() {
     if (this.resizeHandler) {
       window.removeEventListener("resize", this.resizeHandler);
+      this.resizeHandler = undefined;
+    }
+    if (this.visualViewportHandler && window.visualViewport) {
+      window.visualViewport.removeEventListener("resize", this.visualViewportHandler);
+      this.visualViewportHandler = undefined;
     }
     document.body.removeEventListener("keydown", this.handleKeyDown);
     document.body.removeEventListener("keyup", this.handleKeyUp);
   }
 
   private handleKeyDown(event: KeyboardEvent) {
-    this.keyState[event.keyCode] = true;
+    this.setKeyState(event.keyCode, true);
     event.preventDefault();
   }
 
   private handleKeyUp(event: KeyboardEvent) {
-    this.keyState[event.keyCode] = false;
+    this.setKeyState(event.keyCode, false);
     event.preventDefault();
   }
 
