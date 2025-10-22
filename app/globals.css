@@ -87,9 +87,9 @@ canvas {
 
 .mobile-controls__button {
   position: relative;
-  width: clamp(104px, 28vw, 136px);
-  height: clamp(104px, 28vw, 136px);
-  border-radius: clamp(28px, 8vw, 40px);
+  width: clamp(78px, 21vw, 102px);
+  height: clamp(78px, 21vw, 102px);
+  border-radius: clamp(21px, 6vw, 30px);
   border: 1px solid rgba(76, 140, 255, 0.28);
   background: linear-gradient(140deg, rgba(16, 29, 60, 0.6) 0%, rgba(5, 11, 26, 0.45) 100%);
   color: #ffffff;
@@ -126,16 +126,16 @@ canvas {
 .mobile-controls__button::before {
   content: "";
   position: absolute;
-  inset: clamp(10px, 2.8vw, 14px);
-  border-radius: clamp(20px, 6vw, 32px);
+  inset: clamp(7px, 2.1vw, 10px);
+  border-radius: clamp(15px, 4.5vw, 24px);
   background: linear-gradient(155deg, rgba(255, 255, 255, 0.14) 0%, rgba(84, 152, 255, 0.04) 45%, rgba(0, 0, 0, 0) 100%);
   opacity: 0.75;
   pointer-events: none;
 }
 
 .mobile-controls__icon {
-  width: clamp(44px, 14vw, 64px);
-  height: clamp(44px, 14vw, 64px);
+  width: clamp(33px, 10.5vw, 48px);
+  height: clamp(33px, 10.5vw, 48px);
   background: linear-gradient(180deg, rgba(156, 208, 255, 0.75) 0%, rgba(90, 170, 252, 0.5) 100%);
   filter: drop-shadow(0 6px 12px rgba(5, 20, 45, 0.3));
   transition: transform 0.18s ease;
@@ -320,14 +320,14 @@ canvas {
   }
 
   .mobile-controls__button {
-    width: clamp(96px, 36vw, 120px);
-    height: clamp(96px, 36vw, 120px);
-    border-radius: clamp(24px, 10vw, 36px);
+    width: clamp(72px, 27vw, 90px);
+    height: clamp(72px, 27vw, 90px);
+    border-radius: clamp(18px, 7.5vw, 27px);
   }
 
   .mobile-controls__icon {
-    width: clamp(40px, 16vw, 56px);
-    height: clamp(40px, 16vw, 56px);
+    width: clamp(30px, 12vw, 42px);
+    height: clamp(30px, 12vw, 42px);
   }
 }
 
@@ -372,13 +372,13 @@ canvas {
   }
 
   .mobile-controls__button {
-    width: clamp(88px, 40vw, 108px);
-    height: clamp(88px, 40vw, 108px);
+    width: clamp(66px, 30vw, 81px);
+    height: clamp(66px, 30vw, 81px);
   }
 
   .mobile-controls__icon {
-    width: clamp(36px, 16vw, 48px);
-    height: clamp(36px, 16vw, 48px);
+    width: clamp(27px, 12vw, 36px);
+    height: clamp(27px, 12vw, 36px);
   }
 }
 
