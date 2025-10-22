@@ -166,98 +166,179 @@ canvas {
 .game-hud {
   position: absolute;
   top: calc(env(safe-area-inset-top, 0) + clamp(0.75rem, 2.2vw, 1.5rem));
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(960px, 100%);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: clamp(0.75rem, 2.5vw, 1.75rem);
-  padding: 0 clamp(0.75rem, 4vw, 2.25rem);
+  gap: clamp(0.6rem, 2vw, 1.1rem);
+  padding: 0 clamp(1rem, 5vw, 3rem);
   pointer-events: none;
   z-index: 105;
 }
 
-.game-hud__item {
+.game-hud > * {
+  pointer-events: auto;
+}
+
+.hud-chip {
   display: flex;
-  align-items: stretch;
-  pointer-events: auto;
+  align-items: center;
+  gap: clamp(0.35rem, 1vw, 0.6rem);
+  padding: clamp(0.25rem, 1.2vw, 0.55rem) clamp(0.55rem, 2vw, 1rem);
+  border-radius: clamp(10px, 2vw, 14px);
+  background: rgba(8, 14, 28, 0.68);
+  border: 1px solid rgba(122, 178, 255, 0.28);
+  box-shadow: 0 18px 32px rgba(3, 9, 20, 0.3);
+  color: #e8f1ff;
 }
 
-.game-hud__item--timer {
-  flex: 0 0 auto;
-  order: 1;
-}
-
-.game-hud__item--hits {
-  flex: 1 1 220px;
+.hud-chip--timer {
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
-  order: 2;
+  min-width: clamp(150px, 32vw, 220px);
+  padding-right: clamp(0.6rem, 2.4vw, 1.1rem);
+  gap: clamp(0.28rem, 1vw, 0.45rem);
 }
 
-.game-hud__item--player {
-  flex: 0 0 auto;
+.hud-cluster {
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
-  order: 3;
+  gap: clamp(0.45rem, 1.6vw, 0.9rem);
+  margin-left: auto;
+  flex-wrap: nowrap;
 }
 
-.game-hud .game-timer {
-  position: static;
-  top: auto;
-  left: auto;
-  gap: clamp(0.45rem, 1.8vw, 0.85rem);
-  padding: clamp(0.55rem, 1.9vw, 0.95rem) clamp(0.9rem, 3vw, 1.45rem);
-  min-width: clamp(120px, 28vw, 180px);
-  background: linear-gradient(145deg, rgba(6, 18, 42, 0.65) 0%, rgba(4, 10, 22, 0.6) 100%);
-  border: 1px solid rgba(108, 180, 255, 0.35);
-  border-radius: clamp(10px, 2.6vw, 14px);
-  box-shadow: 0 16px 30px rgba(12, 26, 56, 0.35);
-}
-
-.game-hud .timer-icon {
-  font-size: clamp(0.95rem, 2.2vw, 1.25rem);
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-weight: 600;
-  color: rgba(180, 220, 255, 0.9);
-}
-
-.game-hud .timer-value {
-  font-size: clamp(1.1rem, 3vw, 1.55rem);
-  min-width: auto;
-}
-
-.game-hud .hit-counter {
-  position: static;
-  top: auto;
-  left: auto;
-  transform: none;
-  width: auto;
-  max-width: clamp(200px, 50vw, 320px);
-  padding: clamp(0.65rem, 2.2vw, 1.05rem) clamp(1.1rem, 3.2vw, 1.65rem);
+.hud-chip--hits {
   flex-direction: row;
-  justify-content: center;
+  background: rgba(44, 28, 2, 0.62);
+  border-color: rgba(255, 198, 120, 0.38);
+  border-radius: 999px;
+  padding: clamp(0.22rem, 0.9vw, 0.4rem) clamp(0.65rem, 1.8vw, 0.9rem);
+  box-shadow: 0 10px 18px rgba(110, 60, 0, 0.32);
+}
+
+.hud-chip--player {
+  background: rgba(18, 26, 46, 0.6);
+  border-color: rgba(160, 196, 255, 0.22);
+  padding: clamp(0.22rem, 1vw, 0.48rem) clamp(0.55rem, 1.8vw, 0.95rem);
+}
+
+.game-timer__header {
+  display: flex;
   align-items: baseline;
-  gap: clamp(0.5rem, 2.2vw, 1rem);
-  background: linear-gradient(140deg, rgba(32, 18, 0, 0.72) 0%, rgba(64, 32, 0, 0.55) 100%);
-  border: 1px solid rgba(255, 186, 80, 0.45);
-  border-radius: clamp(12px, 3vw, 16px);
-  box-shadow: 0 16px 32px rgba(142, 77, 0, 0.28);
+  justify-content: space-between;
+  gap: clamp(0.4rem, 1.2vw, 0.75rem);
+  width: 100%;
 }
 
-.game-hud .hit-counter-label {
-  font-size: clamp(0.68rem, 1.8vw, 0.95rem);
-  letter-spacing: 0.22em;
-  color: rgba(255, 196, 120, 0.85);
+.timer-icon {
+  font-size: clamp(0.56rem, 1vw, 0.75rem);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(198, 224, 255, 0.7);
 }
 
-.game-hud .hit-counter-value {
-  font-size: clamp(1.6rem, 4.2vw, 2.35rem);
-  min-width: auto;
+.timer-value {
+  font-size: clamp(1.3rem, 3.2vw, 1.85rem);
+  font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-weight: 600;
+  letter-spacing: 0.06em;
 }
 
-.game-hud .user-display {
-  pointer-events: auto;
+.game-timer__progress {
+  position: relative;
+  width: 100%;
+  height: clamp(0.12rem, 0.55vw, 0.24rem);
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(114, 173, 255, 0.18);
+}
+
+.game-timer__progress-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(1);
+  background: linear-gradient(90deg, #55b4ff 0%, #9a7cff 52%, #ff7f9e 100%);
+  box-shadow: 0 0 14px rgba(130, 192, 255, 0.45);
+}
+
+.hit-counter-label {
+  font-size: clamp(0.54rem, 0.95vw, 0.75rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255, 216, 146, 0.68);
+}
+
+.hit-counter-value {
+  font-size: clamp(1.15rem, 2.6vw, 1.6rem);
+  font-weight: 600;
+  color: #ffd47a;
+  text-shadow: 0 0 12px rgba(255, 199, 118, 0.4);
+}
+
+.hud-chip--timer.timer-green .timer-value {
+  color: #9af5d2;
+  text-shadow: 0 0 18px rgba(86, 242, 189, 0.55);
+}
+
+.hud-chip--timer.timer-green {
+  border-color: rgba(88, 242, 188, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 24px rgba(86, 242, 189, 0.28);
+}
+
+.hud-chip--timer.timer-green .game-timer__progress-fill {
+  background: linear-gradient(90deg, #2bd592 0%, #5ef7d0 100%);
+  box-shadow: 0 0 18px rgba(79, 240, 184, 0.45);
+}
+
+.hud-chip--timer.timer-yellow .timer-value {
+  color: #ffe68a;
+  text-shadow: 0 0 18px rgba(255, 230, 138, 0.45);
+}
+
+.hud-chip--timer.timer-yellow {
+  border-color: rgba(255, 215, 128, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 237, 186, 0.2), 0 0 24px rgba(255, 216, 140, 0.25);
+}
+
+.hud-chip--timer.timer-yellow .game-timer__progress-fill {
+  background: linear-gradient(90deg, #ffd05f 0%, #ffef92 100%);
+  box-shadow: 0 0 18px rgba(255, 213, 104, 0.48);
+}
+
+.hud-chip--timer.timer-red .timer-value {
+  color: #ff9898;
+  text-shadow: 0 0 22px rgba(255, 120, 120, 0.6);
+  animation: timer-flash 1.1s ease-in-out infinite;
+}
+
+.hud-chip--timer.timer-red {
+  border-color: rgba(255, 120, 120, 0.48);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 26px rgba(255, 104, 104, 0.32);
+}
+
+.hud-chip--timer.timer-red .game-timer__progress-fill {
+  background: linear-gradient(90deg, #ff7c6f 0%, #ff3b3b 100%);
+  box-shadow: 0 0 22px rgba(255, 90, 90, 0.6);
+}
+
+@keyframes timer-flash {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.35);
+  }
+}
+
+.game-hud--compact .hud-chip--timer,
+.game-hud--compact .hud-chip--hits {
+  display: none;
 }
 
 @media (max-width: 720px) {
@@ -286,32 +367,35 @@ canvas {
   }
 
   .game-hud {
-    gap: clamp(0.6rem, 4vw, 1.5rem);
-    padding: 0 clamp(0.6rem, 6vw, 1.75rem);
+    padding: 0 clamp(0.6rem, 6vw, 1.6rem);
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(0.7rem, 4vw, 1.2rem);
   }
 
-  .game-hud__item {
-    flex: 1 1 100%;
+  .hud-chip {
     justify-content: center;
+    text-align: center;
   }
 
-  .game-hud__item--timer,
-  .game-hud__item--player {
-    flex: 1 1 50%;
+  .hud-chip--timer {
+    width: 100%;
+    min-width: 0;
   }
 
-  .game-hud__item--player {
+  .hud-cluster {
+    width: 100%;
     justify-content: center;
+    gap: clamp(0.5rem, 4vw, 1.1rem);
   }
 
-  .game-hud__item--hits {
-    flex-basis: 100%;
+  .hud-chip--hits,
+  .hud-chip--player {
+    width: auto;
   }
 
-  .game-hud .game-timer,
-  .game-hud .hit-counter,
-  .game-hud .user-display {
-    margin: 0 auto;
+  .user-display--hud {
+    justify-content: center;
   }
 
   .mobile-controls {
@@ -343,24 +427,20 @@ canvas {
   }
 
   .game-hud {
-    gap: clamp(0.5rem, 5vw, 1.1rem);
+    padding: 0 clamp(0.5rem, 8vw, 1.4rem);
+    gap: clamp(0.65rem, 5vw, 1.2rem);
   }
 
-  .game-hud__item--timer,
-  .game-hud__item--player {
-    flex-basis: 100%;
+  .hud-chip--timer {
+    padding: clamp(0.4rem, 3.5vw, 0.75rem) clamp(0.65rem, 4.5vw, 1.2rem);
   }
 
-  .game-hud__item--player {
-    order: 2;
+  .hud-chip--timer .timer-value {
+    font-size: clamp(1.4rem, 7vw, 2rem);
   }
 
-  .game-hud__item--hits {
-    order: 3;
-  }
-
-  .game-hud .hit-counter {
-    max-width: 100%;
+  .hud-chip--player .user-display {
+    width: 100%;
   }
 
   .mobile-controls {
@@ -390,11 +470,10 @@ canvas {
 
   .game-hud {
     top: calc(env(safe-area-inset-top, 0) + clamp(0.5rem, 4vh, 0.85rem));
-    gap: clamp(0.5rem, 3vw, 1.1rem);
   }
 
-  .game-hud .hit-counter {
-    padding: clamp(0.55rem, 1.8vw, 0.85rem) clamp(0.85rem, 2.8vw, 1.4rem);
+  .hud-chip {
+    padding: clamp(0.4rem, 2vh, 0.75rem) clamp(0.7rem, 3.5vw, 1.2rem);
   }
 
   .controls {
@@ -823,144 +902,6 @@ canvas {
   text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
 }
 
-/* Hit Counter */
-.hit-counter {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0) + 1.75rem);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(0.2rem, 1vw, 0.4rem);
-  padding: clamp(0.85rem, 2.5vw, 1.4rem) clamp(1.25rem, 5vw, 2.5rem);
-  width: clamp(160px, 45vw, 260px);
-  background: rgba(0, 0, 0, 0.85);
-  border: 2px solid rgba(255, 165, 0, 0.4);
-  border-radius: clamp(12px, 4vw, 18px);
-  z-index: 100;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 0 30px rgba(255, 165, 0, 0.2);
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.hit-counter-icon {
-  font-size: 2rem;
-  animation: targetPulse 2s ease-in-out infinite;
-}
-
-@keyframes targetPulse {
-  0%, 100% {
-    transform: scale(1);
-    filter: brightness(1);
-  }
-  50% {
-    transform: scale(1.1);
-    filter: brightness(1.3);
-  }
-}
-
-.hit-counter-label {
-  font-size: clamp(0.6rem, 1.5vw, 0.85rem);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: clamp(1.2px, 0.4vw, 2px);
-  color: rgba(255, 165, 0, 0.8);
-}
-
-.hit-counter-value {
-  font-size: clamp(1.9rem, 5.5vw, 2.8rem);
-  font-weight: 700;
-  font-family: monospace;
-  color: #ffa500;
-  text-shadow: 0 0 20px rgba(255, 165, 0, 0.6);
-  line-height: 1;
-  min-width: clamp(48px, 16vw, 72px);
-  text-align: center;
-}
-
-/* Game Timer */
-.game-timer {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0) + 1.25rem);
-  left: clamp(0.75rem, 3vw, 1.75rem);
-  display: flex;
-  align-items: center;
-  gap: clamp(0.35rem, 1.8vw, 0.75rem);
-  padding: clamp(0.6rem, 2vw, 1rem) clamp(0.9rem, 3vw, 1.5rem);
-  background: rgba(0, 0, 0, 0.8);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: clamp(10px, 3vw, 14px);
-  z-index: 100;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-}
-
-.timer-icon {
-  font-size: clamp(1.1rem, 3vw, 1.5rem);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-.timer-value {
-  font-size: clamp(1.1rem, 4vw, 1.6rem);
-  font-weight: 700;
-  font-family: monospace;
-  letter-spacing: 2px;
-  min-width: clamp(52px, 18vw, 72px);
-  text-align: center;
-}
-
-/* Timer color states */
-.timer-green {
-  border-color: rgba(74, 222, 128, 0.4);
-}
-
-.timer-green .timer-value {
-  color: #4ade80;
-  text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
-}
-
-.timer-yellow {
-  border-color: rgba(250, 204, 21, 0.4);
-}
-
-.timer-yellow .timer-value {
-  color: #facc15;
-  text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
-}
-
-.timer-red {
-  border-color: rgba(239, 68, 68, 0.6);
-  animation: urgentPulse 1s ease-in-out infinite;
-}
-
-.timer-red .timer-value {
-  color: #ef4444;
-  text-shadow: 0 0 15px rgba(239, 68, 68, 0.7);
-}
-
-@keyframes urgentPulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
-  }
-}
-
 /* User Display (in game) */
 .user-display {
   display: flex;
@@ -986,9 +927,36 @@ canvas {
   position: static;
   top: auto;
   right: auto;
-  background: rgba(0, 0, 0, 0.52);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.4);
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  gap: clamp(0.3rem, 1vw, 0.5rem);
+}
+
+.user-display--hud .user-label {
+  font-size: clamp(0.58rem, 1.1vw, 0.75rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(214, 226, 255, 0.6);
+}
+
+.user-display--hud .user-name {
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  color: #f5f7ff;
+  font-weight: 600;
+}
+
+.user-display--hud .change-username-btn {
+  padding: clamp(0.28rem, 0.9vw, 0.45rem) clamp(0.55rem, 1.6vw, 0.8rem);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.user-display--hud .change-username-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .user-info {

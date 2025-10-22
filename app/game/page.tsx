@@ -170,29 +170,40 @@ export default function Game() {
     ? "Tap the on-screen arrows to drive | 2 minute timed game"
     : "Drive with arrow keys or WASD | 2 minute timed game";
 
+  const timeProgress = Math.max(0, Math.min(1, timeRemaining / GAME_DURATION_SECONDS));
+
   return (
     <>
-      <div className="game-hud">
+      <div className={`game-hud${gameOver ? " game-hud--compact" : ""}`}>
         {!gameOver && (
-          <div className="game-hud__item game-hud__item--timer">
-            <div className={`game-timer ${getTimerClass()}`}>
-              <div className="timer-icon">Timer</div>
-              <div className="timer-value">{formatTime(timeRemaining)}</div>
+          <div className={`hud-chip hud-chip--timer ${getTimerClass()}`}>
+            <div className="game-timer__header" aria-live="polite">
+              <span className="timer-icon">Time</span>
+              <span className="timer-value">{formatTime(timeRemaining)}</span>
+            </div>
+            <div
+              className="game-timer__progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={GAME_DURATION_SECONDS}
+              aria-valuenow={timeRemaining}
+            >
+              <div className="game-timer__progress-fill" style={{ transform: `scaleX(${timeProgress})` }} />
             </div>
           </div>
         )}
 
-        {!gameOver && (
-          <div className="game-hud__item game-hud__item--hits">
-            <div className="hit-counter">
-              <div className="hit-counter-label">Hits</div>
-              <div className="hit-counter-value">{hitCount}</div>
+        <div className="hud-cluster">
+          {!gameOver && (
+            <div className="hud-chip hud-chip--hits">
+              <span className="hit-counter-label">Hits</span>
+              <span className="hit-counter-value">{hitCount}</span>
             </div>
-          </div>
-        )}
+          )}
 
-        <div className="game-hud__item game-hud__item--player">
-          <UserDisplay username={username} variant="hud" />
+          <div className="hud-chip hud-chip--player">
+            <UserDisplay username={username} variant="hud" />
+          </div>
         </div>
       </div>
 
