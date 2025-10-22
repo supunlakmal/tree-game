@@ -72,10 +72,12 @@ export class Car extends THREE.Object3D {
     const deltaFactor = delta > 0 ? Math.min(delta * 60, 2.5) : 1;
     const steerPower = 0.0008 * deltaFactor;
 
+    const maxSteering = 0.01;
+
     if (keyState[39] || keyState[68]) {
-      this.steering += this.steering > -0.01 ? steerPower : 0;
+      this.steering = Math.min(this.steering + steerPower, maxSteering);
     } else if (keyState[37] || keyState[65]) {
-      this.steering -= this.steering < 0.01 ? steerPower : 0;
+      this.steering = Math.max(this.steering - steerPower, -maxSteering);
     } else {
       this.steering *= Math.pow(0.92, deltaFactor);
     }
