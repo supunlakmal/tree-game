@@ -26,6 +26,23 @@ export default function Game() {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    const previousOverscrollBehavior = document.body.style.overscrollBehavior;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "contain";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (previousOverscrollBehavior) {
+        document.body.style.overscrollBehavior = previousOverscrollBehavior;
+      } else {
+        document.body.style.removeProperty("overscroll-behavior");
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const storedUsername = getStoredUsername();
     if (!storedUsername) {
       router.push("/");
