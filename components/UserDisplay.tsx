@@ -25,7 +25,7 @@ export default function UserDisplay({ username, variant = "overlay" }: UserDispl
         <span className="user-name">{username}</span>
       </div>
       <button onClick={handleChangeUsername} className="change-username-btn" title="Change Username">
-        Change
+        Logout
       </button>
     </div>
   );
