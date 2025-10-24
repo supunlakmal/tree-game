@@ -58,6 +58,75 @@ export function createSkyDome(): SkyAssets {
 const tempQuaternionA = new THREE.Quaternion();
 const tempQuaternionB = new THREE.Quaternion();
 const tempVector = new THREE.Vector3();
+const tempWindQuaternion = new THREE.Quaternion();
+const tempRandomVector = new THREE.Vector3();
+
+interface PalmWindState {
+  object: THREE.Object3D;
+  baseQuaternion: THREE.Quaternion;
+  swayAxis: THREE.Vector3;
+  swayAmplitude: number;
+  swaySpeed: number;
+  swayPhase: number;
+}
+
+const palmWindStates: PalmWindState[] = [];
+const PALM_WIND_STRENGTH = 1.8;
+
+function registerPalmTreeWind(tree: THREE.Object3D, normal: THREE.Vector3) {
+  tempRandomVector.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+  if (tempRandomVector.lengthSq() < 1e-6) {
+    tempRandomVector.set(1, 0, 0);
+  }
+
+  const swayAxis = new THREE.Vector3().crossVectors(normal, tempRandomVector);
+  if (swayAxis.lengthSq() < 1e-6) {
+    tempRandomVector.set(0, 1, 0);
+    swayAxis.crossVectors(normal, tempRandomVector);
+  }
+  if (swayAxis.lengthSq() < 1e-6) {
+    tempRandomVector.set(1, 0, 0);
+    swayAxis.crossVectors(normal, tempRandomVector);
+  }
+  swayAxis.normalize();
+
+  palmWindStates.push({
+    object: tree,
+    baseQuaternion: tree.quaternion.clone(),
+    swayAxis,
+    swayAmplitude: THREE.MathUtils.degToRad((1.5 + Math.random() * 2.5) * PALM_WIND_STRENGTH),
+    swaySpeed: (0.2 + Math.random() * 0.6) * PALM_WIND_STRENGTH,
+    swayPhase: Math.random() * Math.PI * 2,
+  });
+}
+
+function removePalmTreeWind(tree: THREE.Object3D) {
+  const index = palmWindStates.findIndex((state) => state.object === tree);
+  if (index !== -1) {
+    palmWindStates.splice(index, 1);
+  }
+}
+
+export function updatePalmTreeWind(time: number) {
+  if (palmWindStates.length === 0) {
+    return;
+  }
+
+  const gustFactor = 0.7 + 0.3 * Math.sin(time * 0.12);
+
+  for (let i = palmWindStates.length - 1; i >= 0; i--) {
+    const state = palmWindStates[i];
+    if (!state.object.parent) {
+      palmWindStates.splice(i, 1);
+      continue;
+    }
+
+    const angle = Math.sin(time * state.swaySpeed + state.swayPhase) * state.swayAmplitude * gustFactor;
+    tempWindQuaternion.setFromAxisAngle(state.swayAxis, angle);
+    state.object.quaternion.copy(state.baseQuaternion);
+    state.object.quaternion.premultiply(tempWindQuaternion);
+  }
+}
 
 export function randomPointOnPlanet(radius: number) {
   const u = Math.random();
@@ -141,6 +210,7 @@ export async function populatePalmTrees(options: {
 
       tree.visible = false;
 
+      registerPalmTreeWind(tree, normal);
       treeContainer.add(tree);
       sceneBoxes.push(tree);
     }
@@ -250,6 +320,7 @@ export function checkCollisions(car: THREE.Object3D, sceneBoxes: THREE.Object3D[
       onHit();
       object.parent?.remove(object);
       sceneBoxes.splice(i, 1);
+      removePalmTreeWind(object);
     }
   }
 }

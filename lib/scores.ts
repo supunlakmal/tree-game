@@ -155,3 +155,102 @@ export async function getTopScores(limit: number = 100): Promise<ScoreWithUserna
     return [];
   }
 }
+
+/**
+ * Gets the top scores from the last 7 days across all users (each user's highest score in that period)
+ * Returns users ordered by their highest score descending
+ *
+ * Uses the optimized database function `get_top_scores_weekly` which:
+ * - Returns only scores from the last 7 days
+ * - Returns only the highest score per user (no duplicates)
+ * - Handles ties by returning the earliest score timestamp
+ * - Performs all filtering and sorting in the database (efficient)
+ */
+export async function getTopScoresWeekly(limit: number = 100): Promise<ScoreWithUsername[]> {
+  try {
+    // Call the database function which returns pre-joined and filtered results
+    const { data, error } = await supabase.rpc("get_top_scores_weekly", { score_limit: limit });
+
+    if (error) {
+      console.error("Error fetching weekly top scores:", error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // The database function already returns the correct format with username included
+    // Type assertion is safe here as the database function guarantees this structure
+    return data as ScoreWithUsername[];
+  } catch (error) {
+    console.error("Error fetching weekly top scores:", error);
+    return [];
+  }
+}
+
+/**
+ * Gets the top scores from the last 30 days across all users (each user's highest score in that period)
+ * Returns users ordered by their highest score descending
+ *
+ * Uses the optimized database function `get_top_scores_monthly` which:
+ * - Returns only scores from the last 30 days
+ * - Returns only the highest score per user (no duplicates)
+ * - Handles ties by returning the earliest score timestamp
+ * - Performs all filtering and sorting in the database (efficient)
+ */
+export async function getTopScoresMonthly(limit: number = 100): Promise<ScoreWithUsername[]> {
+  try {
+    // Call the database function which returns pre-joined and filtered results
+    const { data, error } = await supabase.rpc("get_top_scores_monthly", { score_limit: limit });
+
+    if (error) {
+      console.error("Error fetching monthly top scores:", error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // The database function already returns the correct format with username included
+    // Type assertion is safe here as the database function guarantees this structure
+    return data as ScoreWithUsername[];
+  } catch (error) {
+    console.error("Error fetching monthly top scores:", error);
+    return [];
+  }
+}
+
+/**
+ * Gets the top scores from the last 24 hours across all users (each user's highest score in that period)
+ * Returns users ordered by their highest score descending
+ *
+ * Uses the optimized database function `get_top_scores_daily` which:
+ * - Returns only scores from the last 24 hours
+ * - Returns only the highest score per user (no duplicates)
+ * - Handles ties by returning the earliest score timestamp
+ * - Performs all filtering and sorting in the database (efficient)
+ */
+export async function getTopScoresDaily(limit: number = 100): Promise<ScoreWithUsername[]> {
+  try {
+    // Call the database function which returns pre-joined and filtered results
+    const { data, error } = await supabase.rpc("get_top_scores_daily", { score_limit: limit });
+
+    if (error) {
+      console.error("Error fetching daily top scores:", error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // The database function already returns the correct format with username included
+    // Type assertion is safe here as the database function guarantees this structure
+    return data as ScoreWithUsername[];
+  } catch (error) {
+    console.error("Error fetching daily top scores:", error);
+    return [];
+  }
+}

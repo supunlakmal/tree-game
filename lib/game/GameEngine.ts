@@ -3,7 +3,14 @@ import * as THREE from "three";
 import { Car } from "./car";
 import { CAMERA_FOV, PLANET_RADIUS } from "./config";
 import { DustParticleSystem } from "./dustParticleSystem";
-import { checkCollisions, createPlanetSurface, createSkyDome, populatePalmTrees, updateObjectVisibility } from "./environment";
+import {
+  checkCollisions,
+  createPlanetSurface,
+  createSkyDome,
+  populatePalmTrees,
+  updateObjectVisibility,
+  updatePalmTreeWind,
+} from "./environment";
 
 export interface GameEngineOptions {
   container: HTMLDivElement;
@@ -212,6 +219,7 @@ export class GameEngine {
     const delta = Math.min(this.clock.getDelta(), 0.1);
 
     this.car.update(delta);
+    updatePalmTreeWind(this.clock.elapsedTime);
     updateObjectVisibility(this.car, this.sceneBoxes);
     checkCollisions(this.car, this.sceneBoxes, () => this.registerHit());
 
