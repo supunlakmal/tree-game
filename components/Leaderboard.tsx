@@ -1,23 +1,43 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getTopScores, ScoreWithUsername } from "@/lib/scores";
+import { getTopScores, getTopScoresWeekly, getTopScoresMonthly, getTopScoresDaily, ScoreWithUsername } from "@/lib/scores";
 import { getCountryFlag } from "@/lib/geo";
+
+type LeaderboardTab = "allTime" | "monthly" | "weekly" | "daily";
 
 export default function Leaderboard() {
   const [scores, setScores] = useState<ScoreWithUsername[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<LeaderboardTab>("daily");
 
   useEffect(() => {
     async function fetchScores() {
       setLoading(true);
-      const topScores = await getTopScores(10);
+      let topScores: ScoreWithUsername[] = [];
+
+      switch (activeTab) {
+        case "daily":
+          topScores = await getTopScoresDaily(10);
+          break;
+        case "weekly":
+          topScores = await getTopScoresWeekly(10);
+          break;
+        case "monthly":
+          topScores = await getTopScoresMonthly(10);
+          break;
+        case "allTime":
+        default:
+          topScores = await getTopScores(10);
+          break;
+      }
+
       setScores(topScores);
       setLoading(false);
     }
 
     fetchScores();
-  }, []);
+  }, [activeTab]);
 
   const getRankEmoji = (rank: number) => {
     switch (rank) {
@@ -50,6 +70,33 @@ export default function Leaderboard() {
       <div className="leaderboard-header">
         <span className="leaderboard-icon">🏆</span>
         <h2 className="leaderboard-title">Leaderboard</h2>
+      </div>
+
+      <div className="leaderboard-tabs">
+        <button
+          className={`leaderboard-tab ${activeTab === "daily" ? "leaderboard-tab--active" : ""}`}
+          onClick={() => setActiveTab("daily")}
+        >
+          Daily
+        </button>
+        <button
+          className={`leaderboard-tab ${activeTab === "weekly" ? "leaderboard-tab--active" : ""}`}
+          onClick={() => setActiveTab("weekly")}
+        >
+          Weekly
+        </button>
+        <button
+          className={`leaderboard-tab ${activeTab === "monthly" ? "leaderboard-tab--active" : ""}`}
+          onClick={() => setActiveTab("monthly")}
+        >
+          Monthly
+        </button>
+        <button
+          className={`leaderboard-tab ${activeTab === "allTime" ? "leaderboard-tab--active" : ""}`}
+          onClick={() => setActiveTab("allTime")}
+        >
+          All Time
+        </button>
       </div>
 
       {loading ? (

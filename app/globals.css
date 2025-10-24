@@ -735,7 +735,7 @@ canvas {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .leaderboard-icon {
@@ -763,6 +763,48 @@ canvas {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.leaderboard-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.375rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.leaderboard-tab {
+  flex: 1;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leaderboard-tab:hover:not(.leaderboard-tab--active) {
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.leaderboard-tab--active {
+  color: #ffffff;
+  background: rgba(255, 215, 0, 0.12);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .leaderboard-loading,
@@ -1145,12 +1187,24 @@ canvas {
     font-size: clamp(1.8rem, 6vw, 2.1rem);
   }
 
-  .leaderboard-container {
+.leaderboard-container {
     padding: clamp(1.5rem, 5vw, 1.75rem) clamp(1.1rem, 4.5vw, 1.5rem);
   }
 
   .leaderboard-title {
     font-size: 1.5rem;
+  }
+
+  .leaderboard-tabs {
+    gap: 0.3rem;
+    padding: 0.25rem;
+  }
+
+  .leaderboard-tab {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
   }
 
   .leaderboard-entry {
@@ -1208,5 +1262,30 @@ canvas {
 
   .score-value {
     font-size: clamp(2rem, 9vw, 2.6rem);
+  }
+}
+
+/* Extra small mobile screens - optimize 4-tab leaderboard */
+@media (max-width: 400px) {
+  .leaderboard-tabs {
+    gap: 0.2rem;
+    padding: 0.2rem;
+  }
+
+  .leaderboard-tab {
+    padding: 0.35rem 0.25rem;
+    font-size: 0.58rem;
+    letter-spacing: 0;
+    font-weight: 700;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+}
+
+/* Very narrow screens - further optimize */
+@media (max-width: 360px) {
+  .leaderboard-tab {
+    padding: 0.35rem 0.2rem;
+    font-size: 0.55rem;
   }
 }
