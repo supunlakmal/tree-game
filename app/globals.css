@@ -86,6 +86,15 @@ canvas {
   gap: clamp(1rem, 4vw, 1.75rem);
 }
 
+.mobile-controls,
+.mobile-controls__group,
+.mobile-controls__button,
+.mobile-controls__icon {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .mobile-controls__button {
   position: relative;
   width: clamp(78px, 21vw, 102px);
@@ -107,6 +116,7 @@ canvas {
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
   overflow: hidden;
   opacity: 0.5;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-controls__button:active {
