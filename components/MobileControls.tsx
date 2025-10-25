@@ -1,6 +1,6 @@
 "use client";
 
-import { MutableRefObject, PointerEvent, useCallback, useEffect } from "react";
+import { MouseEvent, MutableRefObject, PointerEvent, useCallback, useEffect } from "react";
 
 import { GameEngine } from "@/lib/game/GameEngine";
 
@@ -54,6 +54,10 @@ export function MobileControls({ engineRef, disabled = false }: MobileControlsPr
     [updateKeyState]
   );
 
+  const handleContextMenu = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+  }, []);
+
   useEffect(() => {
     return () => {
       Object.values(CONTROL_MAP).forEach((code) => {
@@ -82,6 +86,7 @@ export function MobileControls({ engineRef, disabled = false }: MobileControlsPr
           onPointerUp={handlePointerEnd(CONTROL_MAP.left)}
           onPointerLeave={handlePointerCancel(CONTROL_MAP.left)}
           onPointerCancel={handlePointerCancel(CONTROL_MAP.left)}
+          onContextMenu={handleContextMenu}
         >
           <span aria-hidden className="mobile-controls__icon" />
         </button>
@@ -93,6 +98,7 @@ export function MobileControls({ engineRef, disabled = false }: MobileControlsPr
           onPointerUp={handlePointerEnd(CONTROL_MAP.right)}
           onPointerLeave={handlePointerCancel(CONTROL_MAP.right)}
           onPointerCancel={handlePointerCancel(CONTROL_MAP.right)}
+          onContextMenu={handleContextMenu}
         >
           <span aria-hidden className="mobile-controls__icon" />
         </button>
@@ -106,6 +112,7 @@ export function MobileControls({ engineRef, disabled = false }: MobileControlsPr
           onPointerUp={handlePointerEnd(CONTROL_MAP.forward)}
           onPointerLeave={handlePointerCancel(CONTROL_MAP.forward)}
           onPointerCancel={handlePointerCancel(CONTROL_MAP.forward)}
+          onContextMenu={handleContextMenu}
         >
           <span aria-hidden className="mobile-controls__icon" />
         </button>
@@ -117,6 +124,7 @@ export function MobileControls({ engineRef, disabled = false }: MobileControlsPr
           onPointerUp={handlePointerEnd(CONTROL_MAP.backward)}
           onPointerLeave={handlePointerCancel(CONTROL_MAP.backward)}
           onPointerCancel={handlePointerCancel(CONTROL_MAP.backward)}
+          onContextMenu={handleContextMenu}
         >
           <span aria-hidden className="mobile-controls__icon" />
         </button>
